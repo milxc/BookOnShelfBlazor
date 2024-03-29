@@ -4,6 +4,7 @@ using BookOnShelfBlazor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookOnShelfBlazor.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240329181841_AddedCoupleOfTables")]
+    partial class AddedCoupleOfTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace BookOnShelfBlazor.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("FkUserInfo")
+                    b.Property<int>("FkUserInfo")
                         .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
@@ -168,29 +171,6 @@ namespace BookOnShelfBlazor.Migrations
                     b.ToTable("BooksHistory");
                 });
 
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BooksWriters", b =>
-                {
-                    b.Property<int>("BooksWritersId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BooksWritersId"));
-
-                    b.Property<int>("FkBookid")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FkWritersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BooksWritersId");
-
-                    b.HasIndex("FkBookid");
-
-                    b.HasIndex("FkWritersId");
-
-                    b.ToTable("BooksWriters");
-                });
-
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BorrowedBooks", b =>
                 {
                     b.Property<int>("BorrowedBooksId")
@@ -236,9 +216,6 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.HasKey("GenreId");
 
-                    b.HasIndex("GenreName")
-                        .IsUnique();
-
                     b.ToTable("Genres");
                 });
 
@@ -257,28 +234,7 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.HasKey("LanguageId");
 
-                    b.HasIndex("LanguageName")
-                        .IsUnique();
-
                     b.ToTable("Languages");
-                });
-
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.RemovedBooks", b =>
-                {
-                    b.Property<int>("RemovedBooksId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RemovedBooksId"));
-
-                    b.Property<int>("FkBookId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RemovedBooksId");
-
-                    b.HasIndex("FkBookId");
-
-                    b.ToTable("RemovedBooks");
                 });
 
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.ReservedBooks", b =>
@@ -362,31 +318,7 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.HasKey("UserInfoId");
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
                     b.ToTable("UserInfo");
-                });
-
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.Writers", b =>
-                {
-                    b.Property<int>("WriterId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WriterId"));
-
-                    b.Property<string>("WriterName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("WriterId");
-
-                    b.HasIndex("WriterName")
-                        .IsUnique();
-
-                    b.ToTable("Writers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -526,7 +458,9 @@ namespace BookOnShelfBlazor.Migrations
                 {
                     b.HasOne("BookOnShelfBlazor.Data.Models.UserInfo", "UserInfo")
                         .WithMany()
-                        .HasForeignKey("FkUserInfo");
+                        .HasForeignKey("FkUserInfo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserInfo");
                 });
@@ -569,25 +503,6 @@ namespace BookOnShelfBlazor.Migrations
                     b.Navigation("UserId");
                 });
 
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BooksWriters", b =>
-                {
-                    b.HasOne("BookOnShelfBlazor.Data.Models.Books", "Bookid")
-                        .WithMany()
-                        .HasForeignKey("FkBookid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookOnShelfBlazor.Data.Models.Writers", "WritersId")
-                        .WithMany()
-                        .HasForeignKey("FkWritersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Bookid");
-
-                    b.Navigation("WritersId");
-                });
-
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BorrowedBooks", b =>
                 {
                     b.HasOne("BookOnShelfBlazor.Data.Models.Books", "BookId")
@@ -605,17 +520,6 @@ namespace BookOnShelfBlazor.Migrations
                     b.Navigation("BookId");
 
                     b.Navigation("UserId");
-                });
-
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.RemovedBooks", b =>
-                {
-                    b.HasOne("BookOnShelfBlazor.Data.Models.Books", "Books")
-                        .WithMany()
-                        .HasForeignKey("FkBookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Books");
                 });
 
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.ReservedBooks", b =>

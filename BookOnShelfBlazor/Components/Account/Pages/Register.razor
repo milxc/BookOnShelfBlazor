@@ -6,6 +6,8 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BookOnShelfBlazor.Data
+@using BookOnShelfBlazor.Data.Models
+
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
@@ -14,6 +16,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Context
 
 <PageTitle>Register</PageTitle>
 
@@ -42,6 +45,56 @@
                 <label for="confirm-password">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="John" />
+                <label for="first-name">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.MiddleName" class="form-control" autocomplete="additional-name" placeholder="Middle Name" />
+                <label for="middle-name">Middle Name</label>
+                <ValidationMessage For="() => Input.MiddleName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Doe" />
+                <label for="last-name">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputNumber @bind-Value="Input.PhoneNumber" class="form-control" autocomplete="tel" aria-required="true" placeholder="0612345678" />
+                <label for="phone-number">Phone Number</label>
+                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputDate @bind-Value="Input.DateOfBirth" class="form-control" aria-required="true" />
+                <label for="date-of-birth">Date of Birth</label>
+                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.City" class="form-control" autocomplete="address-level2" aria-required="true" placeholder="Amsterdam" />
+                <label for="city">City</label>
+                <ValidationMessage For="() => Input.City" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Street" class="form-control" autocomplete="address-line1" aria-required="true" placeholder="Main Street" />
+                <label for="street">Street</label>
+                <ValidationMessage For="() => Input.Street" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputNumber @bind-Value="Input.HouseNumber" class="form-control" autocomplete="address-line2" aria-required="true" placeholder="123" />
+                <label for="house-number">House Number</label>
+                <ValidationMessage For="() => Input.HouseNumber" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.HouseNumberAddition" class="form-control" autocomplete="address-line2" placeholder="A" />
+                <label for="house-number-addition">House Number Addition</label>
+                <ValidationMessage For="() => Input.HouseNumberAddition" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.PostalCode" class="form-control" autocomplete="postal-code" aria-required="true" placeholder="1234AB" />
+                <label for="postal-code">Postal Code</label>
+                <ValidationMessage For="() => Input.PostalCode" class="text-danger" />
+            </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
@@ -63,6 +116,8 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    private UserInfo UserInfo { get; set; } = new();
+
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     public async Task RegisterUser(EditContext editContext)
@@ -80,6 +135,20 @@
             return;
         }
 
+        await UserManager.AddToRoleAsync(user, "User");
+
+
+        UserInfo? userInfo = await AddUserInfo();
+        if(userInfo !=null)
+        {
+            user.UserInfo = userInfo;
+            await UserManager.UpdateAsync(user);
+        }
+        else
+        {
+            identityErrors = new List<IdentityError> { new IdentityError { Code = "UserInfoError", Description = "Error while adding user info" } };
+            return;
+        }
         Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
@@ -124,6 +193,44 @@
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 
+    private async Task<UserInfo?> AddUserInfo()
+    {
+        DateTime ChosenDateTime = Input.DateOfBirth;
+        int Year = ChosenDateTime.Year;
+        int Month = ChosenDateTime.Month;
+        int Day = ChosenDateTime.Day;
+
+        DateOnly ChosenDate = new DateOnly(Year, Month, Day);
+
+        var UserInfo = new UserInfo
+            {
+                FirstName = Input.FirstName,
+                MiddleName = Input.MiddleName,
+                LastName = Input.LastName,
+                PhoneNumber = Input.PhoneNumber,
+
+                DateOfBirth = ChosenDate,
+                City = Input.City,
+                Street = Input.Street,
+                HouseNumber = Input.HouseNumber,
+                HouseNumberAddition = Input.HouseNumberAddition,
+                PostalCode = Input.PostalCode
+            };
+        Context.UserInfo.Add(UserInfo);
+
+
+        try
+        {
+            await Context.SaveChangesAsync();
+            return UserInfo;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return null;
+        }
+    }
+
     private sealed class InputModel
     {
         [Required]
@@ -141,5 +248,43 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+
+        [Display(Name = "Middle Name")]
+        public string MiddleName { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Phone Number")]
+        public int PhoneNumber { get; set; }
+
+        [Required]
+        [Display(Name = "Date of Birth")]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        [Display(Name = "City")]
+        public string City { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Street")]
+        public string Street { get; set; } = "";
+
+        [Required]
+        [Display(Name = "House Number")]
+        public int HouseNumber { get; set; }
+
+        [Display(Name = "House Number Addition")]
+        public string HouseNumberAddition { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Postal Code")]
+        public string PostalCode { get; set; } = "";
     }
 }

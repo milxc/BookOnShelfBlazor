@@ -4,6 +4,7 @@ using BookOnShelfBlazor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookOnShelfBlazor.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240329185553_AddedPrimaryKeysInBooksWritersTable")]
+    partial class AddedPrimaryKeysInBooksWritersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace BookOnShelfBlazor.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("FkUserInfo")
+                    b.Property<int>("FkUserInfo")
                         .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
@@ -526,7 +529,9 @@ namespace BookOnShelfBlazor.Migrations
                 {
                     b.HasOne("BookOnShelfBlazor.Data.Models.UserInfo", "UserInfo")
                         .WithMany()
-                        .HasForeignKey("FkUserInfo");
+                        .HasForeignKey("FkUserInfo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserInfo");
                 });

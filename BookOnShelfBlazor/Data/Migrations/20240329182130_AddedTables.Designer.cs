@@ -4,6 +4,7 @@ using BookOnShelfBlazor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookOnShelfBlazor.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240329182130_AddedTables")]
+    partial class AddedTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace BookOnShelfBlazor.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("FkUserInfo")
+                    b.Property<int>("FkUserInfo")
                         .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
@@ -236,9 +239,6 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.HasKey("GenreId");
 
-                    b.HasIndex("GenreName")
-                        .IsUnique();
-
                     b.ToTable("Genres");
                 });
 
@@ -256,9 +256,6 @@ namespace BookOnShelfBlazor.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("LanguageId");
-
-                    b.HasIndex("LanguageName")
-                        .IsUnique();
 
                     b.ToTable("Languages");
                 });
@@ -362,9 +359,6 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.HasKey("UserInfoId");
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
                     b.ToTable("UserInfo");
                 });
 
@@ -382,9 +376,6 @@ namespace BookOnShelfBlazor.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("WriterId");
-
-                    b.HasIndex("WriterName")
-                        .IsUnique();
 
                     b.ToTable("Writers");
                 });
@@ -526,7 +517,9 @@ namespace BookOnShelfBlazor.Migrations
                 {
                     b.HasOne("BookOnShelfBlazor.Data.Models.UserInfo", "UserInfo")
                         .WithMany()
-                        .HasForeignKey("FkUserInfo");
+                        .HasForeignKey("FkUserInfo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserInfo");
                 });
@@ -577,7 +570,7 @@ namespace BookOnShelfBlazor.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BookOnShelfBlazor.Data.Models.Writers", "WritersId")
+                    b.HasOne("BookOnShelfBlazor.Data.Models.Writers", "Writers")
                         .WithMany()
                         .HasForeignKey("FkWritersId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -585,7 +578,7 @@ namespace BookOnShelfBlazor.Migrations
 
                     b.Navigation("Bookid");
 
-                    b.Navigation("WritersId");
+                    b.Navigation("Writers");
                 });
 
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BorrowedBooks", b =>
