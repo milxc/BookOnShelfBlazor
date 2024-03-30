@@ -9,11 +9,14 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Log in</PageTitle>
-
-<h1>Log in</h1>
-<div class="row">
+<div class="row justify-content-center">
+    <h1 class="text-center">Log in</h1>
+<br />
+<br />
+<br />
     <div class="col-md-4">
         <section>
             <StatusMessage Message="@errorMessage" />
@@ -55,14 +58,8 @@
             </EditForm>
         </section>
     </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
 </div>
+
 
 @code {
     private string? errorMessage;
@@ -93,7 +90,23 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+
+            var roles = await UserManager.GetRolesAsync(user);
+
+            if (roles.Contains("Admin"))
+            {
+                RedirectManager.RedirectTo("/LoginHome");
+            }
+            else if (roles.Contains("User"))
+            {
+                RedirectManager.RedirectTo("/LoginHome");
+            }
+            else
+            {
+                // Redirect to a default page
+                RedirectManager.RedirectTo("/");
+            }
         }
         else if (result.RequiresTwoFactor)
         {
