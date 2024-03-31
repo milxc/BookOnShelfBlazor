@@ -9,10 +9,12 @@ namespace BookOnShelfBlazor.Data.Models
         public int BookId { get; set; }
         [Required]
         [StringLength(100)]
-        public string BookName { get; set; }
+        public string Title { get; set; }
+        [MaxLength(200)]
+        public string? Description { get; set; }
         [Required]
         [MaxLength(13)]
-        public int ISBN { get; set; }
+        public string ISBN { get; set; }
         [Required]
         [MaxLength(5)]
         public int AmountOfPages { get; set; }

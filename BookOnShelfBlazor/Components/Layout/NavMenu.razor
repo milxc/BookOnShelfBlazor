@@ -28,7 +28,27 @@
                     </li>
                 </AuthorizeView>
             </ul>
-            <ul class="navbar-nav fs-4">
+            <ul class="navbar-nav justify-content-center fs-4">
+                <AuthorizeView Roles="Admin, User">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Library">
+                            <i class="bi bi-book custom-icon-size"></i>
+                            <span>Library</span>
+                        </a>
+                    </li>
+                </AuthorizeView>
+                <!-- Add a book icon -->
+                <AuthorizeView Roles="Admin">
+                    <li class="nav-item mx-auto">
+                        <!-- Use mx-auto class to center -->
+                        <a class="nav-link" href="/AddBook">
+                            <i class="bi bi-file-plus custom-icon-size"></i>
+                            <span>Add a book</span>
+                        </a>
+                    </li>
+                </AuthorizeView>
+            </ul>
+            <ul class="navbar-nav fs-4 ms-auto">
                 <AuthorizeView>
                     <NotAuthorized>
                         <li class="nav-item">
@@ -62,5 +82,4 @@
         </div>
     </div>
 </nav>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">

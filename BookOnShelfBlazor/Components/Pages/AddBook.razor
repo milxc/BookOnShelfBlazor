@@ -1,0 +1,131 @@
+﻿@page "/AddBook"
+
+@using Microsoft.EntityFrameworkCore
+@using BookOnShelfBlazor.Data
+@using Microsoft.AspNetCore.Components
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.AspNetCore.Identity
+@using BookOnShelfBlazor.Data.Models
+@inject ApplicationDbContext Context
+
+<PageTitle>Add a book!</PageTitle>
+<div class="row justify-content-center">
+    <h1 class="text-center">Add a book!</h1>
+    <div class="col-md-6">
+        <section>
+            <EditForm Model="Book" OnSubmit="AddABook" FormName="AddBook">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <hr />
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Book.Title" class="form-control custom-outline-color" placeholder="Title" />
+                                <label for="Title" class="form-label">Title</label>
+                            </div>
+                            <label for="Writers" class="form-label">Writers</label>
+                            <br />
+                            @if (Writers != null)
+                            {
+                                @foreach (var writer in Writers)
+                                {
+                                    <label>
+                                        <input type="checkbox" value="@writer.WriterId" /> @writer.WriterName
+                                    </label>
+                                    <br />
+                                }
+                            }
+                            else
+                            {
+                                <label>No writers available</label>
+                            }
+                            <br />
+                            <div class="form-floating mb-3">
+                                <InputTextArea @bind-Value="Book.Description" class="form-control custom-outline-color" placeholder="Description" />
+                                <label for="Description" class="form-label">Description</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Book.ISBN" class="form-control custom-outline-color" placeholder="Author" />
+                                <label for="ISBN" class="form-label">ISBN</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputNumber @bind-Value="Book.AmountOfPages" class="form-control custom-outline-color" placeholder="Year" />
+                                <label for="AmountOfPages" class="form-label">Amount of pages</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputNumber @bind-Value="Book.AmountAvailable" class="form-control custom-outline-color" placeholder="Author" />
+                                <label for="AmountAvailable" class="form-label">Amount available</label>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <InputSelect @bind-Value="Book.GenreId" class="form-control custom-outline-color">
+                                        <option value="">Select a genre</option>
+                                        @if (Genres != null)
+                                        {
+                                            @foreach (var genre in Genres)
+                                            {
+                                                <option value="@genre.GenreId">@genre.GenreName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="">No genres available</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6">
+                                    <InputSelect @bind-Value="Book.LanguageId" class="form-control custom-outline-color">
+                                        <option value="">Select a language</option>
+                                        @if (Languages != null)
+                                        {
+                                            @foreach (var language in Languages)
+                                            {
+                                                <option value="@language.LanguageId">@language.LanguageName</option>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <option value="">No languages available</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <label for="FrontCover" class="form-label">Front cover</label>
+                                <InputFile @bind-Value="Book.FrontCover" class="form-control custom-outline-color" />
+                            </div>
+                            <br />
+                            <div class="col-md-12">
+                                <label for="BackCover" class="form-label">Back cover</label>
+                                <InputFile @bind-Value="Book.BackCover" class="form-control custom-outline-color" />
+                            </div>
+                            <hr />
+                            <br />
+                            <button type="submit" class="w-100 btn btn-lg btn-primary">Add a book</button>
+
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+</div>
+
+@code {
+    private Books Book = new Books();
+    private Writers Writer = new Writers();
+
+    List<Genres> Genres;
+    List<Languages> Languages;
+    List<Writers> Writers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Genres = await Context.Genres.ToListAsync();
+        Languages = await Context.Languages.ToListAsync();
+        Writers = await Context.Writers.ToListAsync();
+    }
+
+    private void AddABook()
+    {
+    }
+}
