@@ -1,6 +1,27 @@
 ﻿@page "/Library"
+
+@using Microsoft.EntityFrameworkCore
+@using BookOnShelfBlazor.Data
+@using Microsoft.AspNetCore.Components
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.AspNetCore.Identity
+@using BookOnShelfBlazor.Data.Models
+@inject ApplicationDbContext Context
+
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
 <h3>Library</h3>
 
 @code {
+    private List<Books> Book = new List<Books>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        Book = await Context.Books
+            .Include(book => book.GenreId)
+            .Include(book => book.LanguageId)
+            .ToListAsync();
+    }
 
 }

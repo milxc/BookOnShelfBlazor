@@ -8,6 +8,9 @@
 @using BookOnShelfBlazor.Data.Models
 @inject ApplicationDbContext Context
 
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
 <PageTitle>Add a book!</PageTitle>
 <div class="row justify-content-center">
     <h1 class="text-center">Add a book!</h1>
@@ -24,27 +27,35 @@
                             </div>
                             <label for="Writers" class="form-label">Writers</label>
                             <br />
-                            @if (Writers != null)
+                            <button @onclick="ToggleCheckBoxList" class="btn btn-primary">Add a writer</button>
+                            <br />
+                            @if (ShowCheckBoxList)
                             {
-                                @foreach (var writer in Writers)
+                                <hr />
+                                @if (Writers != null)
                                 {
-                                    <label>
-                                        <input type="checkbox" value="@writer.WriterId" /> @writer.WriterName
-                                    </label>
-                                    <br />
+                                    @foreach (var writer in Writers)
+                                    {
+                                        bool isChecked = SelectedWriters.Contains(writer.WriterId); // Check if writer is selected
+
+                                        <label>
+                                            <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)" /> @writer.WriterId - @writer.WriterName
+                                        </label>
+                                        <br />
+                                    }
+                                    <hr />
+                                }
+                                else
+                                {
+                                    <label>No writers available</label>
                                 }
                             }
-                            else
-                            {
-                                <label>No writers available</label>
-                            }
-                            <br />
                             <div class="form-floating mb-3">
                                 <InputTextArea @bind-Value="Book.Description" class="form-control custom-outline-color" placeholder="Description" />
                                 <label for="Description" class="form-label">Description</label>
                             </div>
                             <div class="form-floating mb-3">
-                                <InputText @bind-Value="Book.ISBN" class="form-control custom-outline-color" placeholder="Author" />
+                                <InputText @bind-Value="Book.ISBN" class="form-control custom-outline-color" placeholder="Author" maxlenth="13" />
                                 <label for="ISBN" class="form-label">ISBN</label>
                             </div>
                             <div class="form-floating mb-3">
@@ -57,7 +68,7 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <InputSelect @bind-Value="Book.GenreId" class="form-control custom-outline-color">
+                                    <InputSelect @bind-Value="SelectedGenre" class="form-control custom-outline-color">
                                         <option value="">Select a genre</option>
                                         @if (Genres != null)
                                         {
@@ -73,7 +84,7 @@
                                     </InputSelect>
                                 </div>
                                 <div class="col-md-6">
-                                    <InputSelect @bind-Value="Book.LanguageId" class="form-control custom-outline-color">
+                                    <InputSelect @bind-Value="SelectedLanguage" class="form-control custom-outline-color">
                                         <option value="">Select a language</option>
                                         @if (Languages != null)
                                         {
@@ -91,17 +102,16 @@
                             </div>
                             <div class="col-md-12">
                                 <label for="FrontCover" class="form-label">Front cover</label>
-                                <InputFile @bind-Value="Book.FrontCover" class="form-control custom-outline-color" />
+                                <InputFile OnChange="HandleFrontCoverUpload" class="form-control custom-outline-color" />
                             </div>
                             <br />
                             <div class="col-md-12">
                                 <label for="BackCover" class="form-label">Back cover</label>
-                                <InputFile @bind-Value="Book.BackCover" class="form-control custom-outline-color" />
+                                <InputFile OnChange="HandleBackCoverUpload" class="form-control custom-outline-color" />
                             </div>
                             <hr />
                             <br />
                             <button type="submit" class="w-100 btn btn-lg btn-primary">Add a book</button>
-
                         </div>
                     </div>
                 </div>
@@ -113,19 +123,150 @@
 @code {
     private Books Book = new Books();
     private Writers Writer = new Writers();
+    private BooksWriters BookWriter = new BooksWriters();
+
+    private bool ShowCheckBoxList = false;
+    private List<int> SelectedWriters = new List<int>();
 
     List<Genres> Genres;
     List<Languages> Languages;
     List<Writers> Writers;
 
+    string SelectedGenre { get; set; }
+    string SelectedLanguage { get; set; }
+
+    private byte[] TemporaryPlaceForFrontImage;
+    private byte[] TemporaryPlaceForBackImage;
+
     protected override async Task OnInitializedAsync()
     {
-        Genres = await Context.Genres.ToListAsync();
-        Languages = await Context.Languages.ToListAsync();
-        Writers = await Context.Writers.ToListAsync();
+        Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
+        Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
+        Writers = await Context.Writers.OrderBy(w => w.WriterName).ToListAsync();
     }
+    private void ToggleCheckBoxList()
+    {
+        ShowCheckBoxList = !ShowCheckBoxList;
+    }
+
+    private void ToggleWriterSelection(int WriterId)
+    {
+        if (SelectedWriters.Contains(WriterId))
+        {
+            SelectedWriters.Remove(WriterId); //unselect een schrijver van de checkboxlist
+        }
+        else
+        {
+            SelectedWriters.Add(WriterId); //select een schrijver van de checkboxlist
+        }
+    }
+
+    private Writers GetWriterById(int writerId)
+    {
+        if (Writers != null)
+        {
+            return Writers.FirstOrDefault(w => w.WriterId == writerId);
+        }
+        return null;
+    }
+
+    private Languages GetSelectedLanguage()
+    {
+        if (Languages != null)
+        {
+            return Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
+        }
+        return null;
+    }
+
+    private Genres GetSelectedGenre()
+    {
+        if (Genres != null)
+        {
+            return Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
+        }
+        return null;
+    }
+
+    public async Task HandleFrontCoverUpload(InputFileChangeEventArgs e)
+    {
+        var ImageFile = e.File;
+        TemporaryPlaceForFrontImage = new byte[ImageFile.Size];
+
+        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForFrontImage);
+    }
+
+    public async Task HandleBackCoverUpload(InputFileChangeEventArgs e)
+    {
+        var ImageFile = e.File;
+        TemporaryPlaceForBackImage = new byte[ImageFile.Size];
+
+        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForBackImage);
+    }
+
 
     private void AddABook()
     {
+        // Console.WriteLine(Book.Title);
+        // Console.WriteLine(Book.Description);
+        // Console.WriteLine(Book.ISBN);
+        // Console.WriteLine(Book.AmountOfPages);
+        // Console.WriteLine(Book.AmountAvailable);
+        // Console.WriteLine(Book.GenreId);
+        // Console.WriteLine(Book.LanguageId);
+        // Console.WriteLine(Book.FrontCover);
+        // Console.WriteLine(Book.BackCover);
+        // foreach (var writer in SelectedWriters)
+        // {
+        //     Console.WriteLine(writer.WriterName);
+        // }
+
+        if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null  && TemporaryPlaceForFrontImage != null && TemporaryPlaceForBackImage != null && SelectedWriters.Count > 0)
+        {
+            Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
+            Book.GenreId = Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
+            Book.FrontCover = TemporaryPlaceForFrontImage;
+            Book.BackCover = TemporaryPlaceForBackImage;
+
+            Context.Books.Add(Book);
+            Context.SaveChanges();
+
+            foreach (var writerId in SelectedWriters)
+            {
+                var writer = GetWriterById(writerId);
+                if (writer != null)
+                {
+                    var bookWriter = new BooksWriters
+                        {
+                            Bookid = Book, // Assuming BookId is the primary key of the Books table
+                            WritersId = writer
+                        };
+                    Context.BooksWriters.Add(bookWriter);
+                }
+                else
+                {
+                    Console.WriteLine($"Writer with ID {writerId} not found.");
+                }
+            }
+            Context.SaveChanges();
+            Console.WriteLine("YIPIEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+        }
+        else
+        {
+            Console.WriteLine("Please fill in all the fields");
+            Console.WriteLine(Book.Title);
+            Console.WriteLine(Book.Description);
+            Console.WriteLine(Book.ISBN);
+            Console.WriteLine(Book.AmountOfPages);
+            Console.WriteLine(Book.AmountAvailable);
+            Console.WriteLine(SelectedLanguage);
+            Console.WriteLine(SelectedGenre);
+            Console.WriteLine(Book.FrontCover);
+            Console.WriteLine(Book.BackCover);
+            foreach (var writer in SelectedWriters)
+            {
+                Console.WriteLine(writer);
+            }
+        }
     }
 }
