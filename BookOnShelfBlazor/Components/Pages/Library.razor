@@ -11,17 +11,46 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-<h3>Library</h3>
-
+<div class="container">
+    <div class="row">
+        @foreach (var book in Books)
+        {
+            <div class="card mb-3">
+                <div class="card-body" style="display: flex; padding: 1rem 0.5rem">
+                    <div class="image-container" style="height: 225px; padding: 4px; border: 1px solid #ccc;">
+                        @if (book.FrontCover != null && book.FrontCover.Length > 0)
+                        {
+                            <img src="@(GetImageSource(book.FrontCover))" class="card-img" alt="Book Image" style="max-width: 100%; max-height: 100%; height: 100%;">
+                        }
+                        else
+                        {
+                            <span>No Image Available</span>
+                        }
+                    </div>
+                    <div class="vr" style="margin-left:25px;"></div>
+                </div>  
+            </div>
+        }
+    </div>
+</div>
 @code {
-    private List<Books> Book = new List<Books>();
+
+    private List<Books> Books = new List<Books>();
 
     protected async override Task OnInitializedAsync()
     {
-        Book = await Context.Books
+        Books = await Context.Books
             .Include(book => book.GenreId)
             .Include(book => book.LanguageId)
             .ToListAsync();
+    }
+
+    private string GetImageSource(byte[] imageData)
+    {
+        if (imageData == null || imageData.Length == 0)
+            return null;
+
+        return $"data:image/jpeg;base64,{Convert.ToBase64String(imageData)}";
     }
 
 }

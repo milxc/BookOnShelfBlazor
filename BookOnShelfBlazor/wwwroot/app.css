@@ -62,3 +62,7 @@ h1:focus {
 .custom-outline-color:focus {
     border-color: black;
 }
+
+.card-body {
+    padding: 1rem 0.5rem;
+}
