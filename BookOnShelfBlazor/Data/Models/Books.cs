@@ -10,7 +10,7 @@ namespace BookOnShelfBlazor.Data.Models
         [Required]
         [StringLength(100)]
         public string Title { get; set; }
-        [MaxLength(200)]
+        [MaxLength(800)]
         public string? Description { get; set; }
         [Required]
         [MaxLength(13)]
