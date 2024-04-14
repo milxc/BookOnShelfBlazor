@@ -23,9 +23,9 @@ namespace BookOnShelfBlazor.Data
             base.OnModelCreating(modelBuilder);
             //modelBuilder.Entity<BooksWriters>()
             //    .HasKey(bw => new { bw.BooksWritersId, bw.WritersId });
-            modelBuilder.Entity<Writers>()
-                .HasIndex(w => w.WriterName)
-                .IsUnique();
+            //modelBuilder.Entity<Writers>()
+            //    .HasIndex(w => w.FirstName)
+            //    .IsUnique();
             modelBuilder.Entity<Genres>()
                 .HasIndex(g => g.GenreName)
                 .IsUnique();

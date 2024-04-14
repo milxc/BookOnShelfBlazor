@@ -29,5 +29,7 @@ namespace BookOnShelfBlazor.Data.Models
         public Languages LanguageId { get; set; }
         public byte[]? FrontCover { get; set; }
         public byte[]? BackCover { get; set; }
+        [MaxLength(5)]
+        public int? BookRating { get; set; }
     }
 }

@@ -6,9 +6,11 @@
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.AspNetCore.Identity
 @using BookOnShelfBlazor.Data.Models
+
 @inject ApplicationDbContext Context
 
 @inject NavigationManager NavigationManager
+    
 @rendermode InteractiveServer
 
 <PageTitle>Add a book!</PageTitle>
@@ -28,6 +30,7 @@
                             <label for="Writers" class="form-label">Writers</label>
                             <br />
                             <button @onclick="ToggleCheckBoxList" class="btn btn-primary">Add a writer</button>
+                            <button class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleAddWriterToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
                             <br />
                             @if (ShowCheckBoxList)
                             {
@@ -39,7 +42,7 @@
                                         bool isChecked = SelectedWriters.Contains(writer.WriterId); // Check if writer is selected
 
                                         <label>
-                                            <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)" /> @writer.WriterId - @writer.WriterName
+                                            <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)" /> @writer.WriterId - @writer.FirstName @(writer.MiddleName != null ? writer.MiddleName + " " : "") @writer.LastName
                                         </label>
                                         <br />
                                     }
@@ -51,11 +54,11 @@
                                 }
                             }
                             <div class="form-floating mb-3">
-                                <InputTextArea @bind-Value="Book.Description" class="form-control custom-outline-color" placeholder="Description" />
+                                <InputTextArea @bind-Value="Book.Description" class="form-control custom-outline-color" placeholder="Description" maxlength="800" />
                                 <label for="Description" class="form-label">Description</label>
                             </div>
                             <div class="form-floating mb-3">
-                                <InputText @bind-Value="Book.ISBN" class="form-control custom-outline-color" placeholder="Author" maxlentgh="13" />
+                                <InputText @bind-Value="Book.ISBN" class="form-control custom-outline-color" placeholder="Author" maxlength="13" />
                                 <label for="ISBN" class="form-label">ISBN</label>
                             </div>
                             <div class="form-floating mb-3">
@@ -67,8 +70,8 @@
                                 <label for="AmountAvailable" class="form-label">Amount available</label>
                             </div>
                             <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <InputSelect @bind-Value="SelectedGenre" class="form-control custom-outline-color">
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <InputSelect style="margin-top:-17px;" @bind-Value="SelectedGenre" class="form-control custom-outline-color">
                                         <option value="">Select a genre</option>
                                         @if (Genres != null)
                                         {
@@ -82,9 +85,10 @@
                                             <option value="">No genres available</option>
                                         }
                                     </InputSelect>
+                                    <button style="margin-left:5px;" class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleGenresToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
                                 </div>
-                                <div class="col-md-6">
-                                    <InputSelect @bind-Value="SelectedLanguage" class="form-control custom-outline-color">
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <InputSelect style="margin-top:-17px;" @bind-Value="SelectedLanguage" class="form-control custom-outline-color">
                                         <option value="">Select a language</option>
                                         @if (Languages != null)
                                         {
@@ -98,6 +102,7 @@
                                             <option value="">No languages available</option>
                                         }
                                     </InputSelect>
+                                    <button style="margin-left:5px;" class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleLanguagesToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -120,13 +125,42 @@
     </div>
 </div>
 
+@* <button @onclick="ToggleToast" class="btn btn-primary">Show toast</button>
+ *@
+@if (ShowAddWriterForm)
+{
+    <AddWriterPopUp OnClose="ToggleWritersToFalse" OnWriterAdded="ReloadWriters" />
+}
+
+@if(ShowGenreForm)
+{
+    <AddGenrePopUp OnClose="ToggleGenresToFalse" OnGenresAdded="ReloadGenres" ></AddGenrePopUp>
+}
+
+@if (ShowLanguageForm)
+{
+    <AddLanguagePopUp OnClose="ToggleLanguagesToFalse" OnLanguageAdded="ReloadLanguages" ></AddLanguagePopUp>
+}
+
+
+
+
 @code {
+    #region Variables
     private Books Book = new Books();
     private Writers Writer = new Writers();
     private BooksWriters BookWriter = new BooksWriters();
 
     private bool ShowCheckBoxList = false;
     private List<int> SelectedWriters = new List<int>();
+
+    private bool ShowAddWriterForm = false;
+    private bool ShowLanguageForm = false;
+    private bool ShowGenreForm = false;
+
+    // [CascadingParameter]
+    // public bool ShowToast { get; set; }
+
 
     List<Genres> Genres;
     List<Languages> Languages;
@@ -137,16 +171,69 @@
 
     private byte[] TemporaryPlaceForFrontImage;
     private byte[] TemporaryPlaceForBackImage;
+    #endregion
 
+    #region OnInitialized
     protected override async Task OnInitializedAsync()
     {
         Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
         Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
-        Writers = await Context.Writers.OrderBy(w => w.WriterName).ToListAsync();
+        Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
     }
+    #endregion
+
+    #region ReloadThings
+    private async Task ReloadWriters()
+    {
+        Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
+    }
+
+    private async Task ReloadGenres()
+    {
+        Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
+    }
+
+    private async Task ReloadLanguages()
+    {
+        Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
+    }
+    #endregion
+
+    #region ToggleThings
+
     private void ToggleCheckBoxList()
     {
         ShowCheckBoxList = !ShowCheckBoxList;
+    }
+
+    private void ToggleAddWriterToTrue()
+    {
+        ShowAddWriterForm = true;
+    }
+
+    private void ToggleWritersToFalse()
+    {
+        ShowAddWriterForm = false;
+    }
+
+    private void ToggleLanguagesToTrue()
+    {
+        ShowLanguageForm = true;
+    }
+
+    private void ToggleLanguagesToFalse()
+    {
+        ShowLanguageForm = false;
+    }
+
+    private void ToggleGenresToTrue()
+    {
+        ShowGenreForm = true;
+    }
+
+    private void ToggleGenresToFalse()
+    {
+        ShowGenreForm = false;
     }
 
     private void ToggleWriterSelection(int WriterId)
@@ -161,6 +248,9 @@
         }
     }
 
+    #endregion
+
+    #region GetThingsForAdd
     private Writers GetWriterById(int writerId)
     {
         if (Writers != null)
@@ -187,7 +277,9 @@
         }
         return null;
     }
+    #endregion
 
+    #region HandleImageUpload
     public async Task HandleFrontCoverUpload(InputFileChangeEventArgs e)
     {
         var ImageFile = e.File;
@@ -203,24 +295,11 @@
 
         await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForBackImage);
     }
+    #endregion
 
-
+    #region AddTheBookItself
     private void AddABook()
     {
-        // Console.WriteLine(Book.Title);
-        // Console.WriteLine(Book.Description);
-        // Console.WriteLine(Book.ISBN);
-        // Console.WriteLine(Book.AmountOfPages);
-        // Console.WriteLine(Book.AmountAvailable);
-        // Console.WriteLine(Book.GenreId);
-        // Console.WriteLine(Book.LanguageId);
-        // Console.WriteLine(Book.FrontCover);
-        // Console.WriteLine(Book.BackCover);
-        // foreach (var writer in SelectedWriters)
-        // {
-        //     Console.WriteLine(writer.WriterName);
-        // }
-
         if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null  && TemporaryPlaceForFrontImage != null && TemporaryPlaceForBackImage != null && SelectedWriters.Count > 0)
         {
             Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
@@ -249,7 +328,6 @@
                 }
             }
             Context.SaveChanges();
-            Console.WriteLine("YIPIEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
         }
         else
         {
@@ -264,9 +342,10 @@
             Console.WriteLine(Book.FrontCover);
             Console.WriteLine(Book.BackCover);
             foreach (var writer in SelectedWriters)
-            {
+            {   
                 Console.WriteLine(writer);
             }
         }
     }
+    #endregion
 }

@@ -11,7 +11,6 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-
 <h3 class="text-center">Library</h3>
 <hr />
 <div class="container">
@@ -20,32 +19,32 @@
         {
             int BookId = book.BookId;
             <a class="link-color" href="@($"/BookDetails/{BookId}")">
-            <div class="card mb-3" style="margin-bottom: 50px; position: relative;">
+                <div class="card mb-3" style="margin-bottom: 50px; position: relative;">
                     <div class="card-body" style="display: flex; padding: 1rem 0.5rem; position: relative;">
-                        <div class="image-container" style="height: 225px; padding: 4px; border: 1px solid #ccc;">
+                        <div class="card-image-container">
                             @if (book.FrontCover != null && book.FrontCover.Length > 0)
                             {
-                                <img src="@(GetImageSource(book.FrontCover))" class="card-img" alt="Book Image" style="max-width: 100%; max-height: 100%; height: 100%;">
+                                <img src="@(GetImageSource(book.FrontCover))" class="front-cover" alt="Front Cover" />
+                                <img src="@(GetImageSource(book.BackCover))" class="back-cover" alt="Back Cover" style="padding:4px;" />
                             }
                             else
                             {
                                 <span>No Image Available</span>
                             }
                         </div>
-                        <div class="vr" style="margin-left: 25px; margin-right: 25px;"></div>
+                        <div class="vr" style="margin-left: 25px; margin-right: 25px; height:225px;"></div>
                         <div style="flex-grow: 1; text-align: center;">
                             <p>@book.Title</p>
                             <hr style="margin-top: auto; margin-bottom: 10px;">
                             <p>@book.Description</p>
                         </div>
-                        <div class="vr" style="margin-left: 25px; margin-right:25px;"></div>
+                        <div class="vr" style="margin-left: 25px; margin-right:25px; height:225px;"></div>
                     </div>
                 </div>
             </a>
         }
     </div>
 </div>
-
 
 @code {
 

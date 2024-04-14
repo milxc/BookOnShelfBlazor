@@ -1,0 +1,205 @@
+﻿    @using Microsoft.EntityFrameworkCore
+    @using BookOnShelfBlazor.Data
+    @using Microsoft.AspNetCore.Components
+    @using Microsoft.Extensions.DependencyInjection
+    @using Microsoft.AspNetCore.Identity
+    @using BookOnShelfBlazor.Data.Models
+@*
+    @inject JSRuntime JSRuntime *@
+    @inject ApplicationDbContext Context
+    @inject NavigationManager NavigationManager
+    @rendermode InteractiveServer
+
+<style>
+    .full-screen-card {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .card-content {
+        width: 45%;
+        max-height: 100%%;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+    }
+</style>
+<EditForm Model="Writer" OnSubmit="AddWriter" FormName="AddWriters">
+    <div class="full-screen-card">
+        <div class="card-content text-center">
+            <div class="row justify-content-end">
+                <div class="col-auto">
+                    <a class="close-icon-size" @onclick="ClosePopUp"><i class="bi bi-x-circle"></i></a>
+                </div>
+            </div>
+            <h1>Add a Writer!</h1>
+            <hr />
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="alert @GetAlertClass()" role="alert">
+                    @Message
+                </div>
+            }
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="FirstName">First Name:</label>
+                        <InputText class="form-control" id="FirstName" @bind-Value="Writer.FirstName" />
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="MiddleName">(Optional)<br />Middle Name:</label>
+                        <InputText class="form-control" id="LastName" @bind-Value="Writer.MiddleName" />
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="LastName">Last Name:</label>
+                        <InputText class="form-control" id="LastName" @bind-Value="Writer.LastName" />
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="Description">(Optional) <br /> Description:</label>
+                        <InputTextArea class="form-control" id="LastName" @bind-Value="Writer.Description" maxlength="100" />
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="ProfilePicture">(Optional) <br /> Profile Picture:</label>
+                        <InputFile OnChange="HandleProfilePictureUpload" class="form-control" id="ProfilePicture" @bind-Value="Writer.ProfilePicture" />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <button type="submit" class="btn btn-primary">Add Writer</button>
+        </div>
+    </div>
+</EditForm>
+
+<script>
+    function ConfirmAddWriterWhenSameName() {
+        return confirm("Are you sure you want to add another writer with the same name?");
+    }
+</script>
+@code {
+    #region Variables
+    public Writers Writer { get; set; } = new Writers();
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnWriterAdded { get; set; }
+
+    public byte[] TemporaryPlaceForProfilePicture { get; set; }
+
+    public string Message = "";
+
+    #endregion
+
+    #region AlertThings
+
+    public string GetAlertClass()
+    {
+        if (Message.StartsWith("Success"))
+        {
+            return "alert-success";
+        }
+        else if (Message.StartsWith("Error"))
+        {
+            return "alert-danger";
+        }
+        else
+        {
+            return "alert-warning";
+        }
+    }
+
+    #endregion  
+
+    #region HandlePictureUpload
+    public async Task HandleProfilePictureUpload(InputFileChangeEventArgs e)
+    {
+        var ImageFile = e.File;
+        TemporaryPlaceForProfilePicture = new byte[ImageFile.Size];
+
+        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForProfilePicture);
+    }
+
+    #endregion
+
+    #region PopUpThings
+
+    private void ClosePopUp()
+    {
+        OnClose.InvokeAsync();
+    }
+    #endregion
+
+    #region TheWriterUpload
+
+    public async Task AddWriter()
+    {
+        try
+        {
+            if (Writer.FirstName == null || Writer.LastName == null)
+            {
+                Message = "Error: Please enter a first and last name.";
+                return;
+            }
+            var ExistingWriter = await Context.Writers.FirstOrDefaultAsync(w => w.FirstName == Writer.FirstName && w.LastName == Writer.LastName && Writer.MiddleName == w.MiddleName);
+            if (ExistingWriter == null)
+            {
+                Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
+                await Context.Writers.AddAsync(Writer);
+                await Context.SaveChangesAsync();
+                Message = "Success: Writer added!";
+                await Task.Delay(2000);
+                await OnWriterAdded.InvokeAsync();
+            }
+            else
+            {
+                Message = "Warning :A writer with the same name already exists, are you sure you want to add another writer with the same name?";
+                // if (ConfirmAddWriterWhenSameName())
+                // {
+                //     Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
+                //     await Context.Writers.AddAsync(Writer);
+                //     await Context.SaveChangesAsync();
+                //     Message = "Success: Writer added!";
+                //     await Task.Delay(2000);
+                //     await OnWriterAdded.InvokeAsync();
+                // }
+                // else
+                // {
+                //     Message = "Error: Writer not added.";
+                //     return;
+                // }
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+            Console.WriteLine(ex.Message);
+        }
+    }
+    #endregion
+}
