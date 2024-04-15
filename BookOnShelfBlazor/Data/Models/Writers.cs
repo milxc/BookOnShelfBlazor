@@ -17,7 +17,7 @@ namespace BookOnShelfBlazor.Data.Models
         public string LastName { get; set; }
         public byte[]? ProfilePicture { get; set; }
 
-        [MaxLength(100)]
+        [MaxLength(300)]
         public string? Description { get; set; }
 
     }

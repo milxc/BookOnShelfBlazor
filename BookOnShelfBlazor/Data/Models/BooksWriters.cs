@@ -9,6 +9,7 @@ namespace BookOnShelfBlazor.Data.Models
         public int BooksWritersId { get; set; }
         [Required]
         [ForeignKey("FkBookid")]
+
         public Books Bookid { get; set; }
         [Required]
         [ForeignKey("FkWritersId")]

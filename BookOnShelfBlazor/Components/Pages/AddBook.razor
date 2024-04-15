@@ -10,13 +10,19 @@
 @inject ApplicationDbContext Context
 
 @inject NavigationManager NavigationManager
-    
+
 @rendermode InteractiveServer
 
 <PageTitle>Add a book!</PageTitle>
 <div class="row justify-content-center">
     <h1 class="text-center">Add a book!</h1>
     <div class="col-md-6">
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="alert @GetAlertClass()" role="alert">
+                @Message
+            </div>
+        }
         <section>
             <EditForm Model="Book" OnSubmit="AddABook" FormName="AddBook">
                 <div class="container">
@@ -29,7 +35,7 @@
                             </div>
                             <label for="Writers" class="form-label">Writers</label>
                             <br />
-                            <button @onclick="ToggleCheckBoxList" class="btn btn-primary">Add a writer</button>
+                            <button @onclick="ToggleCheckBoxList" @onclick:preventDefault class="btn btn-primary">Add a writer</button>
                             <button class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleAddWriterToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
                             <br />
                             @if (ShowCheckBoxList)
@@ -132,14 +138,14 @@
     <AddWriterPopUp OnClose="ToggleWritersToFalse" OnWriterAdded="ReloadWriters" />
 }
 
-@if(ShowGenreForm)
+@if (ShowGenreForm)
 {
-    <AddGenrePopUp OnClose="ToggleGenresToFalse" OnGenresAdded="ReloadGenres" ></AddGenrePopUp>
+    <AddGenrePopUp OnClose="ToggleGenresToFalse" OnGenresAdded="ReloadGenres"></AddGenrePopUp>
 }
 
 @if (ShowLanguageForm)
 {
-    <AddLanguagePopUp OnClose="ToggleLanguagesToFalse" OnLanguageAdded="ReloadLanguages" ></AddLanguagePopUp>
+    <AddLanguagePopUp OnClose="ToggleLanguagesToFalse" OnLanguageAdded="ReloadLanguages"></AddLanguagePopUp>
 }
 
 
@@ -158,9 +164,12 @@
     private bool ShowLanguageForm = false;
     private bool ShowGenreForm = false;
 
+    private string Message = "";
+
     // [CascadingParameter]
     // public bool ShowToast { get; set; }
 
+    string ExistingISBN { get; set; }
 
     List<Genres> Genres;
     List<Languages> Languages;
@@ -181,6 +190,22 @@
         Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
     }
     #endregion
+
+    public string GetAlertClass()
+    {
+        if (Message.StartsWith("Success"))
+        {
+            return "alert-success";
+        }
+        else if (Message.StartsWith("Error"))
+        {
+            return "alert-danger";
+        }
+        else
+        {
+            return "alert-warning";
+        }
+    }
 
     #region ReloadThings
     private async Task ReloadWriters()
@@ -282,70 +307,98 @@
     #region HandleImageUpload
     public async Task HandleFrontCoverUpload(InputFileChangeEventArgs e)
     {
-        var ImageFile = e.File;
-        TemporaryPlaceForFrontImage = new byte[ImageFile.Size];
+        try
+        {
+            var ImageFile = e.File;
+            TemporaryPlaceForFrontImage = new byte[ImageFile.Size];
 
-        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForFrontImage);
+            await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForFrontImage);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Error uploading front picture HAUFHWAUHFUAHFUAHWUHAWUFHWA" + ex);
+        }
     }
 
     public async Task HandleBackCoverUpload(InputFileChangeEventArgs e)
     {
-        var ImageFile = e.File;
-        TemporaryPlaceForBackImage = new byte[ImageFile.Size];
 
-        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForBackImage);
+            var ImageFile = e.File;
+            TemporaryPlaceForBackImage = new byte[ImageFile.Size];
+
+            await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForBackImage);
     }
     #endregion
 
     #region AddTheBookItself
     private void AddABook()
     {
-        if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null  && TemporaryPlaceForFrontImage != null && TemporaryPlaceForBackImage != null && SelectedWriters.Count > 0)
+        try
         {
-            Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
-            Book.GenreId = Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
-            Book.FrontCover = TemporaryPlaceForFrontImage;
-            Book.BackCover = TemporaryPlaceForBackImage;
-
-            Context.Books.Add(Book);
-            Context.SaveChanges();
-
-            foreach (var writerId in SelectedWriters)
+            if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null && TemporaryPlaceForFrontImage != null && TemporaryPlaceForBackImage != null && SelectedWriters.Count > 0)
             {
-                var writer = GetWriterById(writerId);
-                if (writer != null)
+
+                ExistingISBN = Context.Books.FirstOrDefault(b => b.ISBN == Book.ISBN)?.ISBN;
+
+                if (ExistingISBN != null)
                 {
-                    var bookWriter = new BooksWriters
-                        {
-                            Bookid = Book, // Assuming BookId is the primary key of the Books table
-                            WritersId = writer
-                        };
-                    Context.BooksWriters.Add(bookWriter);
+                    Message = "Error: ISBN already exists!";
+                    return;
                 }
-                else
+                Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
+                Book.GenreId = Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
+                Book.FrontCover = TemporaryPlaceForFrontImage;
+                Book.BackCover = TemporaryPlaceForBackImage;
+
+                Context.Books.Add(Book);
+                Context.SaveChanges();
+
+                foreach (var writerId in SelectedWriters)
                 {
-                    Console.WriteLine($"Writer with ID {writerId} not found.");
+                    var writer = GetWriterById(writerId);
+                    if (writer != null)
+                    {
+                        var bookWriter = new BooksWriters
+                            {
+                                Bookid = Book, // Assuming BookId is the primary key of the Books table
+                                WritersId = writer
+                            };
+                        Context.BooksWriters.Add(bookWriter);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Writer with ID {writerId} not found.");
+                    }
+                }
+                Context.SaveChanges();
+
+                Message = "Success :Book added!";
+            }
+            else
+            {
+
+                Message = "Error :Please fill in all the fields";
+                Console.WriteLine("Please fill in all the fields");
+                Console.WriteLine(Book.Title);
+                Console.WriteLine(Book.Description);
+                Console.WriteLine(Book.ISBN);
+                Console.WriteLine(Book.AmountOfPages);
+                Console.WriteLine(Book.AmountAvailable);
+                Console.WriteLine(SelectedLanguage);
+                Console.WriteLine(SelectedGenre);
+                Console.WriteLine(Book.FrontCover);
+                Console.WriteLine(Book.BackCover);
+                foreach (var writer in SelectedWriters)
+                {
+                    Console.WriteLine(writer);
                 }
             }
-            Context.SaveChanges();
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Please fill in all the fields");
-            Console.WriteLine(Book.Title);
-            Console.WriteLine(Book.Description);
-            Console.WriteLine(Book.ISBN);
-            Console.WriteLine(Book.AmountOfPages);
-            Console.WriteLine(Book.AmountAvailable);
-            Console.WriteLine(SelectedLanguage);
-            Console.WriteLine(SelectedGenre);
-            Console.WriteLine(Book.FrontCover);
-            Console.WriteLine(Book.BackCover);
-            foreach (var writer in SelectedWriters)
-            {   
-                Console.WriteLine(writer);
-            }
+            Message = "Error :  " + ex.Message;
         }
     }
+
     #endregion
 }

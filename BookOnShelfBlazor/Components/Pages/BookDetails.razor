@@ -18,67 +18,61 @@
     {
         <div class="card">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="image-container">
-                            @if (ShowFrontImage)
-                            {
-                                <img src="@(GetImageSource(Book.FrontCover))" class="front-cover" alt="Front Cover" />
-                            }
-                            else
-                            {
-                                <img src="@(GetImageSource(Book.BackCover))" class="back-cover" alt="Back Cover" />
-                            }
-                            <hr />
-                            <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
-                        </div>
+                <div class="image-container">
+                    @if (ShowFrontImage)
+                    {
+                        <img src="@(GetImageSource(Book.FrontCover))" class="front-cover" alt="Front Cover" />
+                    }
+                    else
+                    {
+                        <img src="@(GetImageSource(Book.BackCover))" class="back-cover" alt="Back Cover" />
+                    }
+                    <hr />
+                    <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
+                </div>
+                <div class="BookDescription" style="max-width:50%">
+                    <div class="text-center">
+                        <h4 class="card-title">@Book.Title</h4>
                     </div>
-                    <div class="col-md-9">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <h1 class="text-center">@Book.Title</h1>
-                                <hr />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-10 description-container">
-                                <div class="vr"></div>
-                                <p class="description">@Book.Description</p>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="vr"></div>
-                                @if (Book.AmountOfPages != null)
-                                {
-                                    <p style="position: absolute; top: 0;">Amount of Pages: <br /> @Book.AmountOfPages</p>
-                                }
-                                else
-                                {
-                                    <p style="position:absolute; top:0;">Amount of Pages: <br /> No Data Available</p>
-                                }
-                                <hr style="position: absolute; top: 37px; width: 132px ">
-                                @if (Book.GenreId != null)
-                                {
-                                    <p style="position: absolute; top: 60px;">Genre: <br /> @Book.GenreId.GenreName</p>
-                                }
-                                else
-                                {
-                                    <p style="position: absolute; top: 65px;">Genre: <br /> No Data Available</p>
-                                }
-                                <hr style="position: absolute; top: 100px; width: 132px ">
-                                @if (Book.LanguageId != null)
-                                {
-                                    <p style="position: absolute; top: 120px;">Language: <br /> @Book.LanguageId.LanguageName</p>
-                                }
-                                else
-                                {
-                                    <p style="position: absolute; top: 120px;">Language: <br /> No Data Available</p>
-                                }
-                                <hr style="position: absolute; top: 160px; width: 132px ">
-                            </div>
-                        </div>
+                    <hr />
+                    <p class="w-100">@Book.Description</p>
+                </div>
+                <div class="BookInfo" style="max-width:25%">
+                    <div class="text-center">
+                        <h4 class="card-title">Book Info</h4>
+                        <hr />
+                        <p>Amount of pages:<br />@Book.AmountOfPages</p>
+                        <hr />
+                        <p>ISBN:<br />@Book.ISBN</p>
+                        <hr />
+                        <p>Genre:<br />@Book.GenreId.GenreName</p>
+                        <hr />
+                        <p>Language:<br />@Book.LanguageId.LanguageName</p>
+                        <hr />
                     </div>
                 </div>
-                <hr style="position: absolute; top: 264px; width: 61.9%; margin-top: 20px; margin-left:315px;">
+                @foreach (var writer in Writers)
+                {
+                    <div class="WriterInfo">
+                        <hr />
+                        <div class="image-container">
+                            <img src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
+                            <hr />
+                            <div class="text-center w-100">
+                                   @writer.FirstName @if(writer.MiddleName != null){@writer.MiddleName} @writer.LastName
+                            </div>
+                        </div>
+
+                        <div class="AboutTheWriter">
+                            <div class="text-center">
+                                <h4>About the writer:</h4>
+                            </div>
+                            <hr />
+                            <p>@writer.Description</p>
+                        </div>
+
+                    </div>
+                }
             </div>
         </div>
     }
@@ -94,6 +88,8 @@
 
     public Books Book;
 
+    public List<Writers> Writers = new List<Writers>();
+
     private bool ShowFrontImage = true;
 
     protected async override Task OnInitializedAsync()
@@ -102,6 +98,12 @@
             .Include(book => book.GenreId)
             .Include(book => book.LanguageId)
             .FirstOrDefault(book => book.BookId == BookId);
+
+        Writers = await Context.BooksWriters
+        .Include(bw => bw.WritersId)
+            .Where(bw => bw.Bookid == Book)
+            .Select(bw => bw.WritersId)
+            .ToListAsync();
     }
 
 

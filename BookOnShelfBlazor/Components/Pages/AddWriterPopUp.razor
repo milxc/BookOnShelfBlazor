@@ -76,7 +76,7 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="Description">(Optional) <br /> Description:</label>
-                        <InputTextArea class="form-control" id="LastName" @bind-Value="Writer.Description" maxlength="100" />
+                        <InputTextArea class="form-control" id="LastName" @bind-Value="Writer.Description" maxlength="300" />
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                     </div>
                 </div>
             </div>
-            <br />
+            <hr />
             <button type="submit" class="btn btn-primary">Add Writer</button>
         </div>
     </div>
@@ -158,8 +158,8 @@
 
     public async Task AddWriter()
     {
-        try
-        {
+        // try
+        // {
             if (Writer.FirstName == null || Writer.LastName == null)
             {
                 Message = "Error: Please enter a first and last name.";
@@ -178,6 +178,8 @@
             else
             {
                 Message = "Warning :A writer with the same name already exists, are you sure you want to add another writer with the same name?";
+                return;
+
                 // if (ConfirmAddWriterWhenSameName())
                 // {
                 //     Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
@@ -192,14 +194,13 @@
                 //     Message = "Error: Writer not added.";
                 //     return;
                 // }
-                return;
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-            Console.WriteLine(ex.Message);
-        }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+        //     Console.WriteLine(ex.Message);
+        // }
     }
     #endregion
 }

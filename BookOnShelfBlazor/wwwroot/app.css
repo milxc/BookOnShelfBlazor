@@ -67,6 +67,11 @@ h1:focus {
 .card-body {
     padding: 1rem 0.5rem;
     border: 1px solid #ccc;
+    display: flex;
+    flex-direction: row;
+    -ms-flex-wrap: wrap;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
 }
 
 
@@ -101,6 +106,7 @@ h1:focus {
     border: 1px solid #ccc;
     position: relative;
     overflow: hidden;
+    flex:1;
 }
 
     .card-image-container img {
@@ -225,3 +231,24 @@ h1:focus {
     .close-icon-size{
         font-size: 25px;
     }
+
+.BookDescription {
+    flex: 1;
+    margin-left: 25px;
+    margin-right: 25px;
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+.BookInfo{
+    flex:1;
+}
+
+.WriterInfo{
+    flex-wrap:revert;
+    flex-basis: 100%;
+}
+
+.AboutTheWriter{
+    flex:1;
+}
