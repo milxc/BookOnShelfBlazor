@@ -33,7 +33,7 @@
                                 <InputText @bind-Value="Book.Title" class="form-control custom-outline-color" placeholder="Title" />
                                 <label for="Title" class="form-label">Title</label>
                             </div>
-                            <label for="Writers" class="form-label">Writers</label>
+                            <label for="Writers" class="form-label">Writers: (choose up to 2) </label>
                             <br />
                             <button @onclick="ToggleCheckBoxList" @onclick:preventDefault class="btn btn-primary">Add a writer</button>
                             <button class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleAddWriterToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
@@ -46,9 +46,9 @@
                                     @foreach (var writer in Writers)
                                     {
                                         bool isChecked = SelectedWriters.Contains(writer.WriterId); // Check if writer is selected
-
                                         <label>
-                                            <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)" /> @writer.WriterId - @writer.FirstName @(writer.MiddleName != null ? writer.MiddleName + " " : "") @writer.LastName
+                                            <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)"
+                                            /> @writer.WriterId - @writer.FirstName @(writer.MiddleName != null ? writer.MiddleName + " " : "") @writer.LastName
                                         </label>
                                         <br />
                                     }
@@ -112,12 +112,12 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <label for="FrontCover" class="form-label">Front cover</label>
+                                <label for="FrontCover" class="form-label">Front cover: (optional)</label>
                                 <InputFile OnChange="HandleFrontCoverUpload" class="form-control custom-outline-color" />
                             </div>
                             <br />
                             <div class="col-md-12">
-                                <label for="BackCover" class="form-label">Back cover</label>
+                                <label for="BackCover" class="form-label">Back cover: (optional)</label>
                                 <InputFile OnChange="HandleBackCoverUpload" class="form-control custom-outline-color" />
                             </div>
                             <hr />
@@ -314,7 +314,7 @@
 
             await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForFrontImage);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine("Error uploading front picture HAUFHWAUHFUAHFUAHWUHAWUFHWA" + ex);
         }
@@ -322,11 +322,18 @@
 
     public async Task HandleBackCoverUpload(InputFileChangeEventArgs e)
     {
+        try
+        {
 
             var ImageFile = e.File;
             TemporaryPlaceForBackImage = new byte[ImageFile.Size];
 
             await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForBackImage);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error uploading back picture HAUFHWAUHFUAHFUAHWUHAWUFHWA" + ex);
+        }
     }
     #endregion
 
@@ -335,9 +342,37 @@
     {
         try
         {
-            if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null && TemporaryPlaceForFrontImage != null && TemporaryPlaceForBackImage != null && SelectedWriters.Count > 0)
+            if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && Book.AmountAvailable != 0 && SelectedGenre != null && SelectedLanguage != null && SelectedWriters.Count > 0)
             {
+                if(SelectedWriters.Count > 2)
+                {
+                    Message = "Error: You can only select up to 2 writers!";
+                    return;
+                }
 
+                if (TemporaryPlaceForFrontImage == null)
+                {
+                    var defaultImagePath = "wwwroot/Images/NoCoverAvailable.jpeg";
+                    var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
+                    TemporaryPlaceForFrontImage = defaultImageBytes;
+                    Book.FrontCover = TemporaryPlaceForFrontImage;
+                }
+                else
+                {
+                    Book.FrontCover = TemporaryPlaceForFrontImage;
+                }
+
+                if (TemporaryPlaceForBackImage == null)
+                {
+                    var defaultImagePath = "wwwroot/Images/NoCoverAvailable.jpeg";
+                    var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
+                    TemporaryPlaceForBackImage = defaultImageBytes;
+                    Book.BackCover = TemporaryPlaceForBackImage;
+                }
+                else
+                {
+                    Book.BackCover = TemporaryPlaceForBackImage;
+                }
                 ExistingISBN = Context.Books.FirstOrDefault(b => b.ISBN == Book.ISBN)?.ISBN;
 
                 if (ExistingISBN != null)
@@ -347,8 +382,6 @@
                 }
                 Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
                 Book.GenreId = Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
-                Book.FrontCover = TemporaryPlaceForFrontImage;
-                Book.BackCover = TemporaryPlaceForBackImage;
 
                 Context.Books.Add(Book);
                 Context.SaveChanges();
@@ -378,20 +411,6 @@
             {
 
                 Message = "Error :Please fill in all the fields";
-                Console.WriteLine("Please fill in all the fields");
-                Console.WriteLine(Book.Title);
-                Console.WriteLine(Book.Description);
-                Console.WriteLine(Book.ISBN);
-                Console.WriteLine(Book.AmountOfPages);
-                Console.WriteLine(Book.AmountAvailable);
-                Console.WriteLine(SelectedLanguage);
-                Console.WriteLine(SelectedGenre);
-                Console.WriteLine(Book.FrontCover);
-                Console.WriteLine(Book.BackCover);
-                foreach (var writer in SelectedWriters)
-                {
-                    Console.WriteLine(writer);
-                }
             }
         }
         catch (Exception ex)

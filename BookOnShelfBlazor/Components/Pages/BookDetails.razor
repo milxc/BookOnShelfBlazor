@@ -6,6 +6,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.AspNetCore.Identity
 @using BookOnShelfBlazor.Data.Models
+
 @inject ApplicationDbContext Context
 
 @inject NavigationManager NavigationManager
@@ -18,14 +19,14 @@
     {
         <div class="card">
             <div class="card-body">
-                <div class="image-container">
+                <div class="image-container" style="width:18%; height:375px;">
                     @if (ShowFrontImage)
                     {
-                        <img src="@(GetImageSource(Book.FrontCover))" class="front-cover" alt="Front Cover" />
+                        <img src="@(GetImageSource(Book.FrontCover))" style="height:275px" class="front-cover" alt="No front cover available" />
                     }
                     else
                     {
-                        <img src="@(GetImageSource(Book.BackCover))" class="back-cover" alt="Back Cover" />
+                        <img src="@(GetImageSource(Book.BackCover))" style="height:275px" class="back-cover" alt="Back Cover" />
                     }
                     <hr />
                     <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
@@ -51,15 +52,21 @@
                         <hr />
                     </div>
                 </div>
+                <div class="hr-inbetween">
+                    <hr />
+                </div>
                 @foreach (var writer in Writers)
                 {
                     <div class="WriterInfo">
                         <hr />
-                        <div class="image-container">
-                            <img src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
+                        <div class="image-container-pfp">
+                            <img style="width:100%; height:200px" src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
                             <hr />
                             <div class="text-center w-100">
-                                   @writer.FirstName @if(writer.MiddleName != null){@writer.MiddleName} @writer.LastName
+                                @writer.FirstName @if (writer.MiddleName != null)
+                                {
+                                    @writer.MiddleName
+                                } @writer.LastName
                             </div>
                         </div>
 
@@ -67,13 +74,19 @@
                             <div class="text-center">
                                 <h4>About the writer:</h4>
                             </div>
-                            <hr />
+                            <hr style= />
                             <p>@writer.Description</p>
                         </div>
-
                     </div>
                 }
+                <div class="hr-inbetween">
+                    <hr />
+                </div>
+                <div class="Reviews">
+                </div>
             </div>
+
+
         </div>
     }
     else
@@ -81,6 +94,7 @@
         <p class="text-center">Book not found.</p>
     }
 </div>
+
 
 @code {
     [Parameter]

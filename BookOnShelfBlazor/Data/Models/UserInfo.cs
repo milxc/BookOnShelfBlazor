@@ -33,5 +33,7 @@ namespace BookOnShelfBlazor.Data.Models
         [Required]
         [MaxLength(6)]
         public string PostalCode { get; set; }
+
+        public byte[]? ProfilePicture { get; set; }
     }
 }

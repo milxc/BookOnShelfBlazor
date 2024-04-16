@@ -23,5 +23,7 @@ namespace BookOnShelfBlazor.Data.Models
 
         [MaxLength(800)]
         public string? Review { get; set; }
+
+        public int? Likes { get; set; }
     }
 }

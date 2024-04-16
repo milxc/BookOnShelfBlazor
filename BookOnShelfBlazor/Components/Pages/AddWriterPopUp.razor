@@ -138,10 +138,19 @@
     #region HandlePictureUpload
     public async Task HandleProfilePictureUpload(InputFileChangeEventArgs e)
     {
-        var ImageFile = e.File;
-        TemporaryPlaceForProfilePicture = new byte[ImageFile.Size];
+        if(e.File != null)
+        {
+            var ImageFile = e.File;
+            TemporaryPlaceForProfilePicture = new byte[ImageFile.Size];
 
-        await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForProfilePicture);
+            await ImageFile.OpenReadStream().ReadAsync(TemporaryPlaceForProfilePicture);
+        }
+        else
+        {
+            var defaultImagePath = "wwwroot/Images/NoProfilePicture.png";
+            var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
+            TemporaryPlaceForProfilePicture = defaultImageBytes;
+        }
     }
 
     #endregion
@@ -165,14 +174,26 @@
                 Message = "Error: Please enter a first and last name.";
                 return;
             }
+
+            if(TemporaryPlaceForProfilePicture == null)
+            {
+                var defaultImagePath = "wwwroot/Images/NoProfilePicture.png";
+                var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
+                TemporaryPlaceForProfilePicture = defaultImageBytes;
+
+                Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
+            }
+            else
+            {
+                Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
+            }
+
             var ExistingWriter = await Context.Writers.FirstOrDefaultAsync(w => w.FirstName == Writer.FirstName && w.LastName == Writer.LastName && Writer.MiddleName == w.MiddleName);
             if (ExistingWriter == null)
             {
-                Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
                 await Context.Writers.AddAsync(Writer);
                 await Context.SaveChangesAsync();
                 Message = "Success: Writer added!";
-                await Task.Delay(2000);
                 await OnWriterAdded.InvokeAsync();
             }
             else
