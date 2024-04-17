@@ -31,5 +31,7 @@ namespace BookOnShelfBlazor.Data.Models
         public byte[]? BackCover { get; set; }
         [MaxLength(5)]
         public int? BookRating { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }

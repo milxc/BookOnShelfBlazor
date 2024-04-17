@@ -1,5 +1,4 @@
-﻿@page "/AddBook"
-
+﻿@page "/EditBook/{BookId:int}"
 @using Microsoft.EntityFrameworkCore
 @using BookOnShelfBlazor.Data
 @using Microsoft.AspNetCore.Components
@@ -12,19 +11,12 @@
 @inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
-
-<PageTitle>Add a book!</PageTitle>
+<PageTitle>Edit a Book!</PageTitle>
 <div class="row justify-content-center">
-    <h1 class="text-center">Add a book!</h1>
+    <h1 class="text-center">Edit: @Book.Title</h1>
     <div class="col-md-6">
-        @if (!string.IsNullOrEmpty(Message))
-        {
-            <div class="alert @GetAlertClass()" role="alert">
-                @Message
-            </div>
-        }
         <section>
-            <EditForm Model="Book" OnSubmit="AddABook" FormName="AddBook">
+            <EditForm Model="Book" OnSubmit="EditBooks" FormName="EditBook">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
@@ -33,7 +25,7 @@
                                 <InputText @bind-Value="Book.Title" class="form-control custom-outline-color" placeholder="Title" />
                                 <label for="Title" class="form-label">Title</label>
                             </div>
-                            <label for="Writers" class="form-label">Writers: (choose up to 2) </label>
+                            <label for="Writers" class="form-label">Writers:(Choose up to 2)</label>
                             <br />
                             <button @onclick="ToggleCheckBoxList" @onclick:preventDefault class="btn btn-primary">Add Writers</button>
                             <button class="btn btn-secondary ml-2 jump-animation" @onclick="ToggleAddWriterToTrue" @onclick:preventDefault><i class="bi bi-plus"></i></button>
@@ -82,7 +74,14 @@
                                         {
                                             @foreach (var genre in Genres)
                                             {
-                                                <option value="@genre.GenreId">@genre.GenreName</option>
+                                                @if (genre.GenreId == Book.GenreId.GenreId)
+                                                {
+                                                    <option value="@genre.GenreId" selected>@genre.GenreName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@genre.GenreId">@genre.GenreName</option>
+                                                }
                                             }
                                         }
                                         else
@@ -99,7 +98,14 @@
                                         {
                                             @foreach (var language in Languages)
                                             {
-                                                <option value="@language.LanguageId">@language.LanguageName</option>
+                                                @if (language.LanguageId == Book.LanguageId.LanguageId)
+                                                {
+                                                    <option value="@language.LanguageId" selected>@language.LanguageName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@language.LanguageId">@language.LanguageName</option>
+                                                }
                                             }
                                         }
                                         else
@@ -123,6 +129,7 @@
                             <br />
                             <button type="submit" class="w-100 btn btn-lg btn-primary">Add a book</button>
                         </div>
+
                     </div>
                 </div>
             </EditForm>
@@ -130,100 +137,48 @@
     </div>
 </div>
 
-@* <button @onclick="ToggleToast" class="btn btn-primary">Show toast</button>
- *@
-@if (ShowAddWriterForm)
-{
-    <AddWriterPopUp OnClose="ToggleWritersToFalse" OnWriterAdded="ReloadWriters" />
-}
-
-@if (ShowGenreForm)
-{
-    <AddGenrePopUp OnClose="ToggleGenresToFalse" OnGenresAdded="ReloadGenres"></AddGenrePopUp>
-}
-
-@if (ShowLanguageForm)
-{
-    <AddLanguagePopUp OnClose="ToggleLanguagesToFalse" OnLanguageAdded="ReloadLanguages"></AddLanguagePopUp>
-}
-
-
-
-
 @code {
-    #region Variables
-    private Books Book = new Books();
-    private Writers Writer = new Writers();
-    private BooksWriters BookWriter = new BooksWriters();
+    [Parameter]
+    public int BookId { get; set; }
 
-    private bool ShowCheckBoxList = false;
+    Books Book = new Books();
+
+    private List<Writers> CurrentWriters;
     private List<int> SelectedWriters = new List<int>();
-
-    private bool ShowAddWriterForm = false;
-    private bool ShowLanguageForm = false;
-    private bool ShowGenreForm = false;
-
-    private string Message = "";
-
-    // [CascadingParameter]
-    // public bool ShowToast { get; set; }
-
-    string ExistingISBN { get; set; }
 
     List<Genres> Genres;
     List<Languages> Languages;
     List<Writers> Writers;
+
+    private bool ShowCheckBoxList = false;
+
+    private bool ShowAddWriterForm = false;
+    private bool ShowLanguageForm = false;
+    private bool ShowGenreForm = false;
 
     string SelectedGenre { get; set; }
     string SelectedLanguage { get; set; }
 
     private byte[] TemporaryPlaceForFrontImage;
     private byte[] TemporaryPlaceForBackImage;
-    #endregion
 
-    #region OnInitialized
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
+        Book = await GetBook();
+
+        CurrentWriters = await Context.BooksWriters
+           .Include(bw => bw.WritersId)
+           .Where(bw => bw.Bookid == Book)
+           .Select(bw => bw.WritersId)
+           .ToListAsync();
+
         Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
         Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
         Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
-    }
-    #endregion
 
-    public string GetAlertClass()
-    {
-        if (Message.StartsWith("Success"))
-        {
-            return "alert-success";
-        }
-        else if (Message.StartsWith("Error"))
-        {
-            return "alert-danger";
-        }
-        else
-        {
-            return "alert-warning";
-        }
+        SelectedGenre = Book.GenreId.GenreName.ToString();
+        SelectedLanguage = Book.LanguageId.LanguageName.ToString();
     }
-
-    #region ReloadThings
-    private async Task ReloadWriters()
-    {
-        Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
-    }
-
-    private async Task ReloadGenres()
-    {
-        Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
-    }
-
-    private async Task ReloadLanguages()
-    {
-        Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
-    }
-    #endregion
-
-    #region ToggleThings
 
     private void ToggleCheckBoxList()
     {
@@ -272,9 +227,6 @@
         }
     }
 
-    #endregion
-
-    #region GetThingsForAdd
     private Writers GetWriterById(int writerId)
     {
         if (Writers != null)
@@ -301,9 +253,7 @@
         }
         return null;
     }
-    #endregion
 
-    #region HandleImageUpload
     public async Task HandleFrontCoverUpload(InputFileChangeEventArgs e)
     {
         try
@@ -334,89 +284,23 @@
             Console.WriteLine("Error uploading back picture HAUFHWAUHFUAHFUAHWUHAWUFHWA" + ex);
         }
     }
-    #endregion
 
-    #region AddTheBookItself
-    private void AddABook()
+    public async Task<Books> GetBook()
     {
         try
         {
-            if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && SelectedGenre != null && SelectedLanguage != null && SelectedWriters.Count > 0)
-            {
-                if(SelectedWriters.Count > 2)
-                {
-                    Message = "Error: You can only select up to 2 writers!";
-                    return;
-                }
-
-                if (TemporaryPlaceForFrontImage == null)
-                {
-                    var defaultImagePath = "wwwroot/Images/NoCoverAvailable.jpeg";
-                    var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
-                    TemporaryPlaceForFrontImage = defaultImageBytes;
-                    Book.FrontCover = TemporaryPlaceForFrontImage;
-                }
-                else
-                {
-                    Book.FrontCover = TemporaryPlaceForFrontImage;
-                }
-
-                if (TemporaryPlaceForBackImage == null)
-                {
-                    var defaultImagePath = "wwwroot/Images/NoCoverAvailable.jpeg";
-                    var defaultImageBytes = File.ReadAllBytes(defaultImagePath);
-                    TemporaryPlaceForBackImage = defaultImageBytes;
-                    Book.BackCover = TemporaryPlaceForBackImage;
-                }
-                else
-                {
-                    Book.BackCover = TemporaryPlaceForBackImage;
-                }
-                ExistingISBN = Context.Books.FirstOrDefault(b => b.ISBN == Book.ISBN)?.ISBN;
-
-                if (ExistingISBN != null)
-                {
-                    Message = "Error: ISBN already exists!";
-                    return;
-                }
-                Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageId == int.Parse(SelectedLanguage));
-                Book.GenreId = Genres.FirstOrDefault(g => g.GenreId == int.Parse(SelectedGenre));
-
-                Context.Books.Add(Book);
-                Context.SaveChanges();
-
-                foreach (var writerId in SelectedWriters)
-                {
-                    var writer = GetWriterById(writerId);
-                    if (writer != null)
-                    {
-                        var bookWriter = new BooksWriters
-                            {
-                                Bookid = Book, // Assuming BookId is the primary key of the Books table
-                                WritersId = writer
-                            };
-                        Context.BooksWriters.Add(bookWriter);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Writer with ID {writerId} not found.");
-                    }
-                }
-                Context.SaveChanges();
-
-                Message = "Success :Book added!";
-            }
-            else
-            {
-
-                Message = "Error :Please fill in all the fields";
-            }
+            return await Context.Books.FindAsync(BookId);
         }
         catch (Exception ex)
         {
-            Message = "Error :  " + ex.Message;
+            Console.WriteLine(ex.Message);
+            return null;
         }
+        return await Context.Books.FindAsync(BookId);
     }
 
-    #endregion
+    private async Task EditBooks()
+    {
+
+    }
 }

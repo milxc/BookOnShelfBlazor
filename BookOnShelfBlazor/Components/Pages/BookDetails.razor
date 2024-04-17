@@ -13,87 +13,198 @@
 @rendermode InteractiveServer
 
 <h3 class="text-center">Book Details</h3>
+<AuthorizeView Roles="User">
+    <div class="container">
+        @if (Book != null)
+        {
+            <div class="card">
+                <div class="card-body">
 
-<div class="container">
-    @if (Book != null)
-    {
-        <div class="card">
-            <div class="card-body">
-                <div class="image-container" style="width:18%; height:375px;">
-                    @if (ShowFrontImage)
-                    {
-                        <img src="@(GetImageSource(Book.FrontCover))" style="height:275px" class="front-cover" alt="No front cover available" />
-                    }
-                    else
-                    {
-                        <img src="@(GetImageSource(Book.BackCover))" style="height:275px" class="back-cover" alt="Back Cover" />
-                    }
-                    <hr />
-                    <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
-                </div>
-                <div class="BookDescription" style="max-width:50%">
-                    <div class="text-center">
-                        <h4 class="card-title">@Book.Title</h4>
+                    <div class="image-container" style="width:18%; height:375px;">
+                        @if (ShowFrontImage)
+                        {
+                            <img src="@(GetImageSource(Book.FrontCover))" style="height:275px" class="front-cover" alt="No front cover available" />
+                        }
+                        else
+                        {
+                            <img src="@(GetImageSource(Book.BackCover))" style="height:275px" class="back-cover" alt="Back Cover" />
+                        }
+                        <hr />
+                        <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
                     </div>
-                    <hr />
-                    <p class="w-100">@Book.Description</p>
-                </div>
-                <div class="BookInfo" style="max-width:25%">
-                    <div class="text-center">
-                        <h4 class="card-title">Book Info</h4>
+                    <div class="BookDescription" style="max-width:50%">
+                        <div class="text-center">
+                            <h4 class="card-title">@Book.Title</h4>
+                        </div>
                         <hr />
-                        <p>Amount of pages:<br />@Book.AmountOfPages</p>
-                        <hr />
-                        <p>ISBN:<br />@Book.ISBN</p>
-                        <hr />
-                        <p>Genre:<br />@Book.GenreId.GenreName</p>
-                        <hr />
-                        <p>Language:<br />@Book.LanguageId.LanguageName</p>
-                        <hr />
+                        <p class="w-100">@Book.Description</p>
                     </div>
-                </div>
-                <div class="hr-inbetween">
-                    <hr />
-                </div>
-                @foreach (var writer in Writers)
-                {
-                    <div class="WriterInfo">
-                        <hr />
-                        <div class="image-container-pfp">
-                            <img style="width:100%; height:200px" src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
+                    <div class="BookInfo" style="max-width:25%">
+                        <div class="text-center">
+                            <h4 class="card-title">Book Info</h4>
                             <hr />
-                            <div class="text-center w-100">
-                                @writer.FirstName @if (writer.MiddleName != null)
-                                {
-                                    @writer.MiddleName
-                                } @writer.LastName
-                            </div>
-                        </div>
-
-                        <div class="AboutTheWriter">
-                            <div class="text-center">
-                                <h4>About the writer:</h4>
-                            </div>
-                            <hr style= />
-                            <p>@writer.Description</p>
+                            <p>Amount of pages:<br />@Book.AmountOfPages</p>
+                            <hr />
+                            <p>ISBN:<br />@Book.ISBN</p>
+                            <hr />
+                            <p>Genre:<br />@Book.GenreId.GenreName</p>
+                            <hr />
+                            <p>Language:<br />@Book.LanguageId.LanguageName</p>
+                            <hr />
                         </div>
                     </div>
-                }
-                <div class="hr-inbetween">
-                    <hr />
-                </div>
-                <div class="Reviews">
-                </div>
-            </div>
+                    <div class="hr-inbetween">
+                        <hr />
+                    </div>
+                    @foreach (var writer in Writers)
+                    {
+                        <div class="WriterInfo">
+                            <hr />
+                            <div class="image-container-pfp">
+                                <img style="width:100%; height:200px" src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
+                                <hr />
+                                <div class="text-center w-100">
+                                    @writer.FirstName @if (writer.MiddleName != null)
+                                    {
+                                        @writer.MiddleName
+                                    } @writer.LastName
+                                </div>
+                            </div>
 
+                            <div class="AboutTheWriter">
+                                <div class="text-center">
+                                    <h4>About the writer:</h4>
+                                </div>
+                                <hr style= />
+                                <p>@writer.Description</p>
+                            </div>
+                        </div>
+                    }
+                    <div class="hr-inbetween">
+                        <hr />
+                    </div>
+                    <div class="Reviews">
+                    </div>
+                </div>
+
+
+            </div>
+        }
+        else
+        {
+            <p class="text-center">Book not found.</p>
+        }
+
+    </div>
+</AuthorizeView>
+<AuthorizeView Roles="Admin">
+    <div class="container" style="display:flex;">
+        @if (Book != null)
+        {
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert-message">
+                        @if(Book.IsDeleted == true)
+                        {
+                            <div class="alert alert-danger w-100"> This book is not available</div>
+                        }
+                        else if(Book.AmountAvailable == 0)
+                        {
+                            <div class="alert alert-warning w-100"> This book is not available at the moment please wait until one is available</div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success w-100"> This book is available</div>
+                        }
+                    </div>
+                    <div class="hr-inbetween">
+                        <hr />
+                    </div>
+                    <div class="image-container" style="width:18%; height:375px;">
+                        @if (ShowFrontImage)
+                        {
+                            <img src="@(GetImageSource(Book.FrontCover))" style="height:275px" class="front-cover" alt="No front cover available" />
+                        }
+                        else
+                        {
+                            <img src="@(GetImageSource(Book.BackCover))" style="height:275px" class="back-cover" alt="Back Cover" />
+                        }
+                        <hr />
+                        <button class="toggle-picture-button" @onclick="ToggleImage"><i class="bi bi-arrow-left-right"></i></button>
+                    </div>
+                    <div class="BookDescription" style="max-width:50%">
+                        <div class="text-center">
+                            <h4 class="card-title">@Book.Title</h4>
+                        </div>
+                        <hr />
+                        <p class="w-100">@Book.Description</p>
+                    </div>
+                    <div class="BookInfo" style="max-width:25%">
+                        <div class="text-center">
+                            <h4 class="card-title">Book Info</h4>
+                            <hr />
+                            <p>Amount of pages:<br />@Book.AmountOfPages</p>
+                            <hr />
+                            <p>ISBN:<br />@Book.ISBN</p>
+                            <hr />
+                            <p>Genre:<br />@Book.GenreId.GenreName</p>
+                            <hr />
+                            <p>Language:<br />@Book.LanguageId.LanguageName</p>
+                            <hr />
+                        </div>
+                    </div>
+                    <div class="hr-inbetween">
+                        <hr />
+                    </div>
+                    @foreach (var writer in Writers)
+                    {
+                        <div class="WriterInfo">
+                            <hr />
+                            <div class="image-container-pfp">
+                                <img style="width:100%; height:200px" src="@(GetImageSource(writer.ProfilePicture))" class="writer-image" alt="Writer Image" />
+                                <hr />
+                                <div class="text-center w-100">
+                                    @writer.FirstName @if (writer.MiddleName != null)
+                                    {
+                                        @writer.MiddleName
+                                    } @writer.LastName
+                                </div>
+                            </div>
+
+                            <div class="AboutTheWriter">
+                                <div class="text-center">
+                                    <h4>About the writer:</h4>
+                                </div>
+                                <hr style= />
+                                <p>@writer.Description</p>
+                            </div>
+                        </div>
+                    }
+                    <div class="hr-inbetween">
+                        <hr />
+                    </div>
+                    <div class="Reviews">
+                    </div>
+                </div>
+
+
+            </div>
+        }
+        else
+        {
+            <p class="text-center">Book not found.</p>
+        }
+        <div class="actions">
+            <button class="btn-danger delete-book-btn" @onclick="DeleteBook">
+                <i class="bi bi-trash" style="font-size:30px"></i>
+            </button>
+            <button class="btn-primary edit-book-btn" @onclick='()=>NavigationManager.NavigateTo($"EditBook/{BookId}")' >
+                <i class="bi bi-pencil" style="font-size:30px"></i>
+            </button>
 
         </div>
-    }
-    else
-    {
-        <p class="text-center">Book not found.</p>
-    }
-</div>
+    </div>
+</AuthorizeView>
 
 
 @code {
@@ -132,5 +243,12 @@
     private void ToggleImage()
     {
         ShowFrontImage = !ShowFrontImage;
+    }
+
+    private void DeleteBook()
+    {
+        Context.Books.Remove(Book);
+        Context.SaveChanges();
+        NavigationManager.NavigateTo("/Library");
     }
 }

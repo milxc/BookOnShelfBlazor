@@ -275,3 +275,29 @@ h1:focus {
     flex-basis: 100%;
     display: flex;
 }
+
+.delete-book-btn {
+    margin-top: 10px;
+    border-radius: 10px;
+    transition: transform 0.5s ease;
+}
+
+.delete-book-btn:hover {
+    transform: scale(1.1);
+}
+
+.edit-book-btn {
+    margin-top: 10px;
+    border-radius: 10px;
+    transition: transform 0.5s ease;
+}
+
+.edit-book-btn:hover {
+    transform: scale(1.1);
+}
+
+.alert-message {
+    flex-wrap: revert;
+    flex-basis: 100%;
+    display: flex;
+}
