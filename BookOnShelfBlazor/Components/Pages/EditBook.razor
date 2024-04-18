@@ -37,6 +37,7 @@
                                 {
                                     @foreach (var writer in Writers)
                                     {
+
                                         bool isChecked = SelectedWriters.Contains(writer.WriterId); // Check if writer is selected
                                         <label>
                                             <input type="checkbox" value="@writer.WriterId" checked="@isChecked" @onclick="() => ToggleWriterSelection(writer.WriterId)" /> @writer.WriterId - @writer.FirstName @(writer.MiddleName != null ? writer.MiddleName + " " : "") @writer.LastName
@@ -127,7 +128,7 @@
                             </div>
                             <hr />
                             <br />
-                            <button type="submit" class="w-100 btn btn-lg btn-primary">Add a book</button>
+                            <button type="submit" class="w-100 btn btn-lg btn-primary">Edit @Book.Title</button>
                         </div>
 
                     </div>
@@ -137,7 +138,24 @@
     </div>
 </div>
 
+@if (ShowAddWriterForm)
+{
+    <AddWriterPopUp OnClose="ToggleWritersToFalse" OnWriterAdded="ReloadWriters" />
+}
+
+@if (ShowGenreForm)
+{
+    <AddGenrePopUp OnClose="ToggleGenresToFalse" OnGenresAdded="ReloadGenres"></AddGenrePopUp>
+}
+
+@if (ShowLanguageForm)
+{
+    <AddLanguagePopUp OnClose="ToggleLanguagesToFalse" OnLanguageAdded="ReloadLanguages"></AddLanguagePopUp>
+}
+
 @code {
+
+    #region Variables
     [Parameter]
     public int BookId { get; set; }
 
@@ -162,6 +180,12 @@
     private byte[] TemporaryPlaceForFrontImage;
     private byte[] TemporaryPlaceForBackImage;
 
+
+
+    #endregion
+
+    #region OnInitialized
+
     protected async override Task OnInitializedAsync()
     {
         Book = await GetBook();
@@ -172,6 +196,9 @@
            .Select(bw => bw.WritersId)
            .ToListAsync();
 
+        SelectedWriters = CurrentWriters.Select(w => w.WriterId).ToList();
+
+
         Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
         Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
         Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
@@ -179,6 +206,10 @@
         SelectedGenre = Book.GenreId.GenreName.ToString();
         SelectedLanguage = Book.LanguageId.LanguageName.ToString();
     }
+
+    #endregion
+
+    #region ToggleThings
 
     private void ToggleCheckBoxList()
     {
@@ -227,6 +258,10 @@
         }
     }
 
+    #endregion
+
+    #region GetDataThings
+
     private Writers GetWriterById(int writerId)
     {
         if (Writers != null)
@@ -253,6 +288,10 @@
         }
         return null;
     }
+
+    #endregion
+
+    #region HandleImages
 
     public async Task HandleFrontCoverUpload(InputFileChangeEventArgs e)
     {
@@ -285,22 +324,97 @@
         }
     }
 
+    #endregion
+
+    #region ReloadThings
+    private async Task ReloadWriters()
+    {
+        Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
+    }
+
+    private async Task ReloadGenres()
+    {
+        Genres = await Context.Genres.OrderBy(g => g.GenreName).ToListAsync();
+    }
+
+    private async Task ReloadLanguages()
+    {
+        Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
+    }
+    #endregion
+
     public async Task<Books> GetBook()
     {
         try
         {
             return await Context.Books.FindAsync(BookId);
+
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
             return null;
         }
-        return await Context.Books.FindAsync(BookId);
     }
+
+    private async Task UpdateSelectedWriters()
+    {
+
+        //delete de oude relaties
+        var existingRelations = await Context.BooksWriters.Where(bw => bw.Bookid == Book).ToListAsync();
+        Context.BooksWriters.RemoveRange(existingRelations);
+
+        //add de nieuwe relaties na de update
+        foreach (var writerId in SelectedWriters)
+        {
+            var bookWriter = new BooksWriters
+                {
+                    Bookid = Book,
+                    WritersId = await Context.Writers.FindAsync(writerId)
+                };
+            Context.BooksWriters.Add(bookWriter);
+        }
+    }
+
+
 
     private async Task EditBooks()
     {
+        if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && SelectedGenre != null && SelectedLanguage != null && SelectedWriters.Count > 0)
+        {
+            if (SelectedWriters.Count > 2)
+            {
+                Console.WriteLine("You can only select 2 writers");
+                return;
+            }
+
+            if (TemporaryPlaceForFrontImage != null)
+            {
+                Book.FrontCover = TemporaryPlaceForFrontImage;
+            }
+
+            if (TemporaryPlaceForBackImage != null)
+            {
+                Book.BackCover = TemporaryPlaceForBackImage;
+            }
+            try
+            {
+                Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageName == SelectedLanguage);
+                Book.GenreId = Genres.FirstOrDefault(g => g.GenreName == SelectedGenre);
+
+                await UpdateSelectedWriters();
+                await Context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        else
+        {
+            
+        }
+
 
     }
 }
