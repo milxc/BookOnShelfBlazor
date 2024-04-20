@@ -315,9 +315,32 @@ h1:focus {
     -ms-flex-direction: inherit;
     -webkit-flex-direction: inherit;
     flex-direction: column;
+    max-width: 100%;
 }
-.Reviws {
+.Reviews {
     -ms-flex: inherit;
     -webkit-flex: inherit;
     flex: inherit;
+}
+
+.card-body-review {
+    flex-wrap: revert;
+    flex-basis: 100%;
+    display: flex;
+    max-width: 100%;
+}
+
+.ImagePFP{
+    width:5%;
+    height:5%;
+}
+
+.The-Review {
+    flex: 1;
+    margin-left: 25px;
+    margin-right: 25px;
+    max-width: 90%;
+}
+
+.Review{
 }

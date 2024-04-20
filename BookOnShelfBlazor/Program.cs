@@ -82,12 +82,35 @@ using (var scope = app.Services.CreateScope())
     string email = "admin@gmail.com";
     string password = "Password123!";
 
+    DateTime ChosenDateTime = DateTime.Today;
+    int Year = ChosenDateTime.Year;
+    int Month = ChosenDateTime.Month;
+    int Day = ChosenDateTime.Day;
+
+    DateOnly ChosenDate = new DateOnly(Year, Month, Day);
+
+    var DeafultImagePath = "wwwroot/Images/NoProfilePicture.png";
+    var DeafultImage = File.ReadAllBytes(DeafultImagePath);
+   var TemporaryProfilePicture = DeafultImage;
+
+
     if (userManager.FindByEmailAsync(email).Result == null)
     {
         ApplicationUser? user = new ApplicationUser();
         user.UserName = email;
         user.Email = email;
         user.EmailConfirmed = true;
+        user.FirstName = "Admin";
+        user.MiddleName = "Admin";
+        user.LastName = "Admin";
+        user.PhoneNumber = 1234567890;
+        user.City = "City";
+        user.DateOfBirth = ChosenDate;
+        user.ProfilePicture = TemporaryProfilePicture;
+        user.Street = "Street";
+        user.HouseNumber = 1;
+        user.HouseNumberAddition = "A";
+        user.PostalCode = "000AA";
 
         await userManager.CreateAsync(user, password);
 

@@ -87,7 +87,34 @@
                     <div class="hr-inbetween">
                         <hr />
                     </div>
-                    <div class="Reviews">
+                    <div class="Reviews-container">
+                        <div class="w-100 text-center">
+                            <h4>Reviews:@Reviews.Count</h4>
+                        </div>
+                        <hr />
+                        <div class="Reviews">
+                            @*                             <div class="ProfilePictureWriteReview">
+                        <img src="@(GetImageSource(UserManager.FindByEmailAsync(authUser.Identity.Name).Result.ProfilePicture))" />
+                        </div> *@
+                            <EditForm Model="review" OnSubmit="AddReview">
+                                <ChildContent Context="editFormContext">
+                                    <InputText @bind-Value="NewReview" placeholder="Write a review" class="w-100" />
+                                    <button class="btn-primary delete-book-btn">
+                                        <i class="bi bi-chat-left"></i>
+                                    </button>
+                                </ChildContent>
+                            </EditForm>
+                            <hr />
+                            @foreach (var review in Reviews)
+                            {
+                                int ReviewId = review.ReviewId;
+
+                                <div class="Review">
+                                    <img src="@(GetImageSource(review.UserId.ProfilePicture))" />
+                                    <p>@review.Review</p>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -195,7 +222,7 @@
                         <div class="Reviews">
                             <EditForm Model="review" OnSubmit="AddReview">
                                 <ChildContent Context="editFormContext">
-                                    <InputText @bind-Value="NewReview" placeholder="Write a review" class="w-100" />
+                                    <InputText @bind-Value="NewReview" placeholder="Write a review" style="width:96%" />
                                     <button class="btn-primary delete-book-btn">
                                         <i class="bi bi-chat-left"></i>
                                     </button>
@@ -205,9 +232,16 @@
                             @foreach (var review in Reviews)
                             {
                                 int ReviewId = review.ReviewId;
-                                <div class="Review">
 
-                                    <p>@review.Review</p>
+                                <div class="Review">
+                                    <div class="card">
+                                        <div class="card-body-review">
+                                            <img class="rounded-circle ImagePFP" src="@(GetImageSource(review.UserId.ProfilePicture))" />
+                                            <div class="The-Review">
+                                                <p class="">@review.UserId.UserName Commented: <br /><hr /> @review.Review</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -260,6 +294,7 @@
             .ToListAsync();
 
         Reviews = await Context.BookReviews
+            .Include(br => br.UserId)
             .Where(br => br.Bookid == Book)
             .ToListAsync();
 
@@ -267,7 +302,6 @@
         authUser = authState.User;
 
     }
-
 
     private string GetImageSource(byte[] imageData)
     {
@@ -291,21 +325,12 @@
 
     private async Task AddReview()
     {
-        // var User = GetUser().Result;
         review.Bookid = Book;
         review.Review = NewReview;
         review.UserId = await UserManager.FindByEmailAsync(authUser.Identity.Name);
 
         Context.BookReviews.Add(review);
-        Context.SaveChanges();
+        Context.SaveChangesAsync();
         Console.WriteLine("Review added");
     }
-
-    // private async Task<ApplicationUser> GetUser()
-    // {
-    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //     authUser = authState.User;
-    //     var user = await UserManager.FindByEmailAsync(authUser.Identity.Name);
-    //     return user;
-    // }
 }
