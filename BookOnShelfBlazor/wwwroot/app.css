@@ -270,11 +270,7 @@ h1:focus {
     flex-basis: 100%;
 }
 
-.Reviews {
-    flex-wrap: revert;
-    flex-basis: 100%;
-    display: flex;
-}
+
 
 .delete-book-btn {
     margin-top: 10px;
@@ -296,8 +292,32 @@ h1:focus {
     transform: scale(1.1);
 }
 
+.send-review-btn{
+    margin-top: 10px;
+    border-radius: 10px;
+    transition: transform 0.5s ease;
+}
+
+.send-review-btn:hover {
+    transform: scale(1.1);
+}
+
 .alert-message {
     flex-wrap: revert;
     flex-basis: 100%;
     display: flex;
+}
+
+.Reviews-container {
+    flex-wrap: revert;
+    flex-basis: 100%;
+    display: flex;
+    -ms-flex-direction: inherit;
+    -webkit-flex-direction: inherit;
+    flex-direction: column;
+}
+.Reviws {
+    -ms-flex: inherit;
+    -webkit-flex: inherit;
+    flex: inherit;
 }

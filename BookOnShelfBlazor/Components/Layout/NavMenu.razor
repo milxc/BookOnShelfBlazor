@@ -68,6 +68,12 @@
 
                 <AuthorizeView Roles="Admin, User">
                     <li class="nav-item">
+                          <a class="nav-link" href="/ProfileOverview">
+                            <i class="bi bi-person custom-icon-size"></i>
+                            <span>Profile</span>
+                        </a
+                    </li>
+                    <li class="nav-item">
                         <form action="Account/Logout" method="post">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="#" />

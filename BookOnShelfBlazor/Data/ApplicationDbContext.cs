@@ -17,6 +17,7 @@ namespace BookOnShelfBlazor.Data
         public DbSet<ReservedBooks> ReservedBooks { get; set; }
         public DbSet<UserInfo> UserInfo { get; set; }
         public DbSet<Writers> Writers { get; set; }
+        public DbSet<BookReviews> BookReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

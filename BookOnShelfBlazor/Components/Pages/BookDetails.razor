@@ -6,10 +6,14 @@
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.AspNetCore.Identity
 @using BookOnShelfBlazor.Data.Models
+@using System.Security.Claims
+
 
 @inject ApplicationDbContext Context
 
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
 @rendermode InteractiveServer
 
 <h3 class="text-center">Book Details</h3>
@@ -104,11 +108,11 @@
             <div class="card">
                 <div class="card-body">
                     <div class="alert-message">
-                        @if(Book.IsDeleted == true)
+                        @if (Book.IsDeleted == true)
                         {
                             <div class="alert alert-danger w-100"> This book is not available</div>
                         }
-                        else if(Book.AmountAvailable == 0)
+                        else if (Book.AmountAvailable == 0)
                         {
                             <div class="alert alert-warning w-100"> This book is not available at the moment please wait until one is available</div>
                         }
@@ -175,7 +179,7 @@
                                 <div class="text-center">
                                     <h4>About the writer:</h4>
                                 </div>
-                                <hr style= />
+                                <hr />
                                 <p>@writer.Description</p>
                             </div>
                         </div>
@@ -183,11 +187,32 @@
                     <div class="hr-inbetween">
                         <hr />
                     </div>
-                    <div class="Reviews">
+                    <div class="Reviews-container">
+                        <div class="w-100 text-center">
+                            <h4>Reviews:@Reviews.Count</h4>
+                        </div>
+                        <hr />
+                        <div class="Reviews">
+                            <EditForm Model="review" OnSubmit="AddReview">
+                                <ChildContent Context="editFormContext">
+                                    <InputText @bind-Value="NewReview" placeholder="Write a review" class="w-100" />
+                                    <button class="btn-primary delete-book-btn">
+                                        <i class="bi bi-chat-left"></i>
+                                    </button>
+                                </ChildContent>
+                            </EditForm>
+                            <hr />
+                            @foreach (var review in Reviews)
+                            {
+                                int ReviewId = review.ReviewId;
+                                <div class="Review">
+
+                                    <p>@review.Review</p>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
-
-
             </div>
         }
         else
@@ -198,7 +223,7 @@
             <button class="btn-danger delete-book-btn" @onclick="DeleteBook">
                 <i class="bi bi-trash" style="font-size:30px"></i>
             </button>
-            <button class="btn-primary edit-book-btn" @onclick='()=>NavigationManager.NavigateTo($"EditBook/{BookId}")' >
+            <button class="btn-primary edit-book-btn" @onclick='()=>NavigationManager.NavigateTo($"EditBook/{BookId}")'>
                 <i class="bi bi-pencil" style="font-size:30px"></i>
             </button>
 
@@ -212,10 +237,14 @@
     public int BookId { get; set; }
 
     public Books Book;
+    public BookReviews review = new BookReviews();
 
     public List<Writers> Writers = new List<Writers>();
+    public List<BookReviews> Reviews = new List<BookReviews>();
 
     private bool ShowFrontImage = true;
+    private string NewReview;
+    private ClaimsPrincipal authUser;
 
     protected async override Task OnInitializedAsync()
     {
@@ -225,10 +254,19 @@
             .FirstOrDefault(book => book.BookId == BookId);
 
         Writers = await Context.BooksWriters
-        .Include(bw => bw.WritersId)
+            .Include(bw => bw.WritersId)
             .Where(bw => bw.Bookid == Book)
             .Select(bw => bw.WritersId)
             .ToListAsync();
+
+        Reviews = await Context.BookReviews
+            .Include(br => br.UserId.UserInfo)
+            .Where(br => br.Bookid == Book)
+            .ToListAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        authUser = authState.User;
+
     }
 
 
@@ -251,4 +289,24 @@
         Context.SaveChanges();
         NavigationManager.NavigateTo("/Library");
     }
+
+    private async Task AddReview()
+    {
+        // var User = GetUser().Result;
+        review.Bookid = Book;
+        review.Review = NewReview;
+        review.UserId = await UserManager.FindByEmailAsync(authUser.Identity.Name);
+
+        Context.BookReviews.Add(review);
+        Context.SaveChanges();
+        Console.WriteLine("Review added");
+    }
+
+    // private async Task<ApplicationUser> GetUser()
+    // {
+    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //     authUser = authState.User;
+    //     var user = await UserManager.FindByEmailAsync(authUser.Identity.Name);
+    //     return user;
+    // }
 }

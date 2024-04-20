@@ -9,17 +9,17 @@ namespace BookOnShelfBlazor.Data.Models
         [Key]
         public int ReviewId { get; set; }
         [Required]
-        [ForeignKey("BookId")]
+        [ForeignKey("FkBookid")]
 
-        public Books BookId { get; set; }
+        public Books Bookid { get; set; }
+
         [Required]
-        [ForeignKey("UserId")]
+        [ForeignKey("FkUserId")]
 
         public ApplicationUser UserId { get; set; }
-        [Required]
-        [MaxLength(5)]
 
-        public int Rating { get; set; }
+        [MaxLength(5)]
+        public int? Rating { get; set; }
 
         [MaxLength(800)]
         public string? Review { get; set; }
