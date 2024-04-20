@@ -260,7 +260,6 @@
             .ToListAsync();
 
         Reviews = await Context.BookReviews
-            .Include(br => br.UserId.UserInfo)
             .Where(br => br.Bookid == Book)
             .ToListAsync();
 

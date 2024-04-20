@@ -116,8 +116,6 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private UserInfo UserInfo { get; set; } = new();
-
     public Byte[] TemporaryProfilePicture { get; set; }
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
@@ -128,8 +126,30 @@
         {
             return;
         }
+        DateTime ChosenDateTime = Input.DateOfBirth;
+        int Year = ChosenDateTime.Year;
+        int Month = ChosenDateTime.Month;
+        int Day = ChosenDateTime.Day;
+
+        DateOnly ChosenDate = new DateOnly(Year, Month, Day);
+
+        var DeafultImagePath = "wwwroot/Images/NoProfilePicture.png";
+        var DeafultImage = File.ReadAllBytes(DeafultImagePath);
+        TemporaryProfilePicture = DeafultImage;
 
         var user = CreateUser();
+
+        user.FirstName = Input.FirstName;
+        user.MiddleName = Input.MiddleName;
+        user.LastName = Input.LastName;
+        user.PhoneNumber = Input.PhoneNumber;
+        user.DateOfBirth = ChosenDate;
+        user.City = Input.City;
+        user.Street = Input.Street;
+        user.HouseNumber = Input.HouseNumber;
+        user.HouseNumberAddition = Input.HouseNumberAddition;
+        user.PostalCode = Input.PostalCode;
+        user.ProfilePicture = TemporaryProfilePicture;
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
@@ -143,20 +163,6 @@
         }
 
         await UserManager.AddToRoleAsync(user, "User");
-
-
-        UserInfo? userInfo = await AddUserInfo();
-        if (userInfo != null)
-        {
-            user.UserInfo = userInfo;
-            await UserManager.UpdateAsync(user);
-        }
-        else
-        {
-            identityErrors = new List<IdentityError> { new IdentityError { Code = "UserInfoError", Description = "Error while adding user info" } };
-            return;
-        }
-        Logger.LogInformation("User created a new account with password.");
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
@@ -198,50 +204,6 @@
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
         return (IUserEmailStore<ApplicationUser>)UserStore;
-    }
-
-    private async Task<UserInfo?> AddUserInfo()
-    {
-        DateTime ChosenDateTime = Input.DateOfBirth;
-        int Year = ChosenDateTime.Year;
-        int Month = ChosenDateTime.Month;
-        int Day = ChosenDateTime.Day;
-
-        DateOnly ChosenDate = new DateOnly(Year, Month, Day);
-
-        var DeafultImagePath = "wwwroot/Images/NoProfilePicture.png";
-        var DeafultImage = File.ReadAllBytes(DeafultImagePath);
-        TemporaryProfilePicture = DeafultImage;
-
-        var UserInfo = new UserInfo
-            {
-                FirstName = Input.FirstName,
-                MiddleName = Input.MiddleName,
-                LastName = Input.LastName,
-                PhoneNumber = Input.PhoneNumber,
-
-                DateOfBirth = ChosenDate,
-                City = Input.City,
-                Street = Input.Street,
-                HouseNumber = Input.HouseNumber,
-                HouseNumberAddition = Input.HouseNumberAddition,
-                PostalCode = Input.PostalCode,
-                ProfilePicture = TemporaryProfilePicture
-
-            };
-        Context.UserInfo.Add(UserInfo);
-
-
-        try
-        {
-            await Context.SaveChangesAsync();
-            return UserInfo;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return null;
-        }
     }
 
     private sealed class InputModel

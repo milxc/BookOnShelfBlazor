@@ -15,7 +15,7 @@ namespace BookOnShelfBlazor.Data
         public DbSet<Languages> Languages { get; set; }
         public DbSet<RemovedBooks> RemovedBooks { get; set; }
         public DbSet<ReservedBooks> ReservedBooks { get; set; }
-        public DbSet<UserInfo> UserInfo { get; set; }
+        //public DbSet<UserInfo> UserInfo { get; set; }
         public DbSet<Writers> Writers { get; set; }
         public DbSet<BookReviews> BookReviews { get; set; }
 
@@ -33,9 +33,9 @@ namespace BookOnShelfBlazor.Data
             modelBuilder.Entity<Languages>()
                 .HasIndex(l => l.LanguageName)
                 .IsUnique();
-            modelBuilder.Entity<UserInfo>()
-                .HasIndex(ui => ui.PhoneNumber)
-                .IsUnique();
+            //modelBuilder.Entity<UserInfo>()
+            //    .HasIndex(ui => ui.PhoneNumber)
+            //    .IsUnique();
             modelBuilder.Entity<IdentityUserLogin<string>>(b =>
             {
                 b.HasKey(e => new { e.LoginProvider, e.ProviderKey });
