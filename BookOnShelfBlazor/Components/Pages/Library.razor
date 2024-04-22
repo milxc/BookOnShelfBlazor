@@ -17,31 +17,34 @@
     <div class="row">
         @foreach (var book in Books)
         {
-            int BookId = book.BookId;
-            <a class="link-color" href="@($"/BookDetails/{BookId}")">
-                <div class="card mb-3" style="margin-bottom: 50px; position: relative;">
-                    <div class="card-body" style="display: flex; padding: 1rem 0.5rem; position: relative;">
-                        <div class="card-image-container">
-                            @if (book.FrontCover != null && book.FrontCover.Length > 0)
-                            {
-                                <img src="@(GetImageSource(book.FrontCover))" class="front-cover" alt="Front Cover" />
-                                <img src="@(GetImageSource(book.BackCover))" class="back-cover" alt="Back Cover" style="padding:4px;" />
-                            }
-                            else
-                            {
-                                <span>No Image Available</span>
-                            }
+            @if (book.IsDeleted == false)
+            {
+                int BookId = book.BookId;
+                <a class="link-color" href="@($"/BookDetails/{BookId}")">
+                    <div class="card mb-3" style="margin-bottom: 50px; position: relative;">
+                        <div class="card-body" style="display: flex; padding: 1rem 0.5rem; position: relative;">
+                            <div class="card-image-container">
+                                @if (book.FrontCover != null && book.FrontCover.Length > 0)
+                                {
+                                    <img src="@(GetImageSource(book.FrontCover))" class="front-cover" alt="Front Cover" />
+                                    <img src="@(GetImageSource(book.BackCover))" class="back-cover" alt="Back Cover" style="padding:4px;" />
+                                }
+                                else
+                                {
+                                    <span>No Image Available</span>
+                                }
+                            </div>
+                            <div class="vr" style="margin-left: 25px; margin-right: 25px; height:225px;"></div>
+                            <div style="flex-grow: 1; text-align: center;">
+                                <p>@book.Title</p>
+                                <hr style="margin-top: auto; margin-bottom: 10px;">
+                                <p>@book.Description</p>
+                            </div>
+                            <div class="vr" style="margin-left: 25px; margin-right:25px; height:225px;"></div>
                         </div>
-                        <div class="vr" style="margin-left: 25px; margin-right: 25px; height:225px;"></div>
-                        <div style="flex-grow: 1; text-align: center;">
-                            <p>@book.Title</p>
-                            <hr style="margin-top: auto; margin-bottom: 10px;">
-                            <p>@book.Description</p>
-                        </div>
-                        <div class="vr" style="margin-left: 25px; margin-right:25px; height:225px;"></div>
                     </div>
-                </div>
-            </a>
+                </a>
+            }
         }
     </div>
 </div>
@@ -57,6 +60,7 @@
         Books = await Context.Books
             .Include(book => book.GenreId)
             .Include(book => book.LanguageId)
+            .Where(book => !book.IsDeleted)
             .ToListAsync();
     }
 

@@ -15,6 +15,12 @@
 <div class="row justify-content-center">
     <h1 class="text-center">Edit: @Book.Title</h1>
     <div class="col-md-6">
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="alert @GetAlertClass()" role="alert">
+                @Message
+            </div>
+        }
         <section>
             <EditForm Model="Book" OnSubmit="EditBooks" FormName="EditBook">
                 <div class="container">
@@ -169,18 +175,17 @@
     List<Writers> Writers;
 
     private bool ShowCheckBoxList = false;
-
     private bool ShowAddWriterForm = false;
     private bool ShowLanguageForm = false;
     private bool ShowGenreForm = false;
+
+    private string Message = "";
 
     string SelectedGenre { get; set; }
     string SelectedLanguage { get; set; }
 
     private byte[] TemporaryPlaceForFrontImage;
     private byte[] TemporaryPlaceForBackImage;
-
-
 
     #endregion
 
@@ -205,9 +210,26 @@
 
         SelectedGenre = Book.GenreId.GenreName.ToString();
         SelectedLanguage = Book.LanguageId.LanguageName.ToString();
+
     }
 
     #endregion
+
+    public string GetAlertClass()
+    {
+        if (Message.StartsWith("Success"))
+        {
+            return "alert-success";
+        }
+        else if (Message.StartsWith("Error"))
+        {
+            return "alert-danger";
+        }
+        else
+        {
+            return "alert-warning";
+        }
+    }
 
     #region ToggleThings
 
@@ -376,8 +398,6 @@
         }
     }
 
-
-
     private async Task EditBooks()
     {
         if (Book.Title != null && Book.Description != null && Book.ISBN != null && Book.AmountOfPages != 0 && SelectedGenre != null && SelectedLanguage != null && SelectedWriters.Count > 0)
@@ -404,15 +424,18 @@
 
                 await UpdateSelectedWriters();
                 await Context.SaveChangesAsync();
+                Message = "Success :Book edited!";
+                await Task.Delay(2000);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                Message = "Error :Something went wrong, please try again.";
             }
         }
         else
         {
-            
+            Message = "Error :Please fill in all the fields.";
         }
 
 

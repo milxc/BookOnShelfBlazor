@@ -25,5 +25,9 @@ namespace BookOnShelfBlazor.Data.Models
         public string? Review { get; set; }
 
         public int? Likes { get; set; }
+
+        public bool IsDeleted { get; set; }
+
+        public int? Reported { get; set; }
     }
 }

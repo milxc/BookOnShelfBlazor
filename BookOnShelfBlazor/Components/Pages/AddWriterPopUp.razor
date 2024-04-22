@@ -167,8 +167,6 @@
 
     public async Task AddWriter()
     {
-        // try
-        // {
             if (Writer.FirstName == null || Writer.LastName == null)
             {
                 Message = "Error: Please enter a first and last name.";
@@ -200,28 +198,7 @@
             {
                 Message = "Warning :A writer with the same name already exists, are you sure you want to add another writer with the same name?";
                 return;
-
-                // if (ConfirmAddWriterWhenSameName())
-                // {
-                //     Writer.ProfilePicture = TemporaryPlaceForProfilePicture;
-                //     await Context.Writers.AddAsync(Writer);
-                //     await Context.SaveChangesAsync();
-                //     Message = "Success: Writer added!";
-                //     await Task.Delay(2000);
-                //     await OnWriterAdded.InvokeAsync();
-                // }
-                // else
-                // {
-                //     Message = "Error: Writer not added.";
-                //     return;
-                // }
             }
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-        //     Console.WriteLine(ex.Message);
-        // }
     }
     #endregion
 }
