@@ -1,0 +1,48 @@
+﻿@page "/Notifications"
+
+<style>
+    /* Custom styles for notification bar */
+    .notification-bar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh; /* Full height of the viewport */
+      width: 25%; /* 25% of the screen width */
+      background-color: #f8f9fa; /* Light gray background color */
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2); /* Shadow on the left side */
+      z-index: 999; /* Ensure it's on top of other content */
+      overflow-y: auto; /* Enable vertical scrolling if needed */
+    }
+    
+    /* Styling for notification content */
+    .notification-content {
+      padding: 20px;
+    }
+
+    /* Example styling for a notification */
+    .notification {
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+    }
+  </style>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col notification-bar">
+      <div class="notification-content">
+        <!-- Example notifications -->
+        <div class="notification">Notification 1</div>
+        <div class="notification">Notification 2</div>
+        <div class="notification">Notification 3</div>
+        <!-- Add more notifications as needed -->
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+
+}

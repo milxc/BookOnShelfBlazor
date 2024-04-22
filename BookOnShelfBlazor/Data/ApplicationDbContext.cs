@@ -13,7 +13,6 @@ namespace BookOnShelfBlazor.Data
         public DbSet<BorrowedBooks> BorrowedBooks { get; set; }
         public DbSet<Genres> Genres { get; set; }
         public DbSet<Languages> Languages { get; set; }
-        public DbSet<RemovedBooks> RemovedBooks { get; set; }
         public DbSet<ReservedBooks> ReservedBooks { get; set; }
         //public DbSet<UserInfo> UserInfo { get; set; }
         public DbSet<Writers> Writers { get; set; }

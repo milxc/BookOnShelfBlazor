@@ -13,18 +13,17 @@ main {
 }
 .navbar {
     background-color: black;
+    height:50%;
 }
-/* Define styles for the navigation menu */
 .nav-menu {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
 
-/* Define styles for the navigation menu items */
 .nav-item {
     display: inline-block;
-    margin-right: 10px; /* Adjust as needed */
+    margin-right: 10px;
     text-align: center;
 }
 .nav-link {
@@ -36,11 +35,12 @@ main {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    transition: transform 0.5s ease; /* Add transition for smooth animation */
+    transition: transform 0.5s ease;
 }
     .nav-link:hover {
         transform: scale(1.1); 
     }
+
 
 .nav-item span {
     font-size: 16px;
@@ -51,7 +51,7 @@ main {
 }
 
 .custom-icon-size {
-    font-size: 40px; /* Adjust the size as needed */
+    font-size: 40px;
 }
 .top-row {
     background-color: #f7f7f7;

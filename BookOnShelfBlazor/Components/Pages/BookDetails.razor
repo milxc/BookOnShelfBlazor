@@ -109,9 +109,10 @@
                         </div>
                         <hr />
                         <div class="Reviews">
-                            <EditForm Model="review" OnSubmit="AddReview">
+                           <EditForm Model="review" OnSubmit="AddReview">
                                 <ChildContent Context="editFormContext">
-                                    <InputText @bind-Value="NewReview" placeholder="Write a review" style="width:96%" />
+                                    <img class="rounded-circle ImagePFP" src="@(GetImageSource(user?.ProfilePicture))" />
+                                    <InputText class="custom-margin" @bind-Value="NewReview" placeholder="Write a review" style="width:89%" />
                                     <button class="btn-primary delete-book-btn">
                                         <i class="bi bi-chat-left"></i>
                                     </button>
@@ -173,7 +174,7 @@
                         }
                         else
                         {
-                            <div class="alert alert-success w-100"> This book is available</div>
+                            <div class="alert alert-success w-100"> This book is available, Amount Available: @Book.AmountAvailable</div>
                         }
                     </div>
                     <div class="hr-inbetween">
@@ -250,7 +251,8 @@
                         <div class="Reviews">
                             <EditForm Model="review" OnSubmit="AddReview">
                                 <ChildContent Context="editFormContext">
-                                    <InputText @bind-Value="NewReview" placeholder="Write a review" style="width:96%" />
+                                    <img class="rounded-circle ImagePFP" src="@(GetImageSource(user?.ProfilePicture))" />
+                                    <InputText class="custom-margin" @bind-Value="NewReview" placeholder="Write a review" style="width:89%" />
                                     <button class="btn-primary delete-book-btn">
                                         <i class="bi bi-chat-left"></i>
                                     </button>
@@ -268,7 +270,7 @@
                                                     <p class="">@review.UserId.UserName Commented: <br /><hr /> @review.Review</p>
                                                 </div>
                                                 <div class="ActionButtons">
-                                                    @if (review.UserId.Id == authUser.FindFirst(ClaimTypes.NameIdentifier).Value)
+                                                    @if (review.UserId.Id == user.Id)
                                                     {
                                                         <button class="btn-danger delete-book-btn" @onclick="() => DeleteReview(review)"> <i class="bi bi-trash" style="font-size:15px"></i></button>
                                                         <button class="btn-primary edit-book-btn" @onclick="() => TriggerEditReview(review.ReviewId)">
@@ -313,7 +315,9 @@
             <button class="btn-primary edit-book-btn" @onclick='()=>NavigationManager.NavigateTo($"EditBook/{BookId}")'>
                 <i class="bi bi-pencil" style="font-size:30px"></i>
             </button>
-
+            <button class="btn-primary delete-book-btn" @onclick="TriggerAddOrRemoveAmountPopUp">
+                <i class="bi bi-arrow-down-up" style="font-size:30px"></i>
+            </button>
         </div>
     </div>
 </AuthorizeView>
@@ -323,6 +327,11 @@
     <EditReviewPopUp ReviewId="@reviewIdToEdit" OnClose="TriggerCloseEditReview" />
 }
 
+@if(ShowAddOrRemoveAmountPopUp)
+{
+    <AddOrRemoveAmountAvailable BookId="@BookId" OnClose="TriggerAddOrRemoveAmountPopUpClose" />
+}
+
 @code {
     #region Variables
     [Parameter]
@@ -330,19 +339,22 @@
 
     public Books Book;
     public BookReviews review = new BookReviews();
+    public ClaimsPrincipal authUser;
+    public ApplicationUser user;
 
     public List<Writers> Writers = new List<Writers>();
     public List<BookReviews> Reviews = new List<BookReviews>();
 
-    private bool ShowFrontImage = true;
     private string NewReview;
-    private ClaimsPrincipal authUser;
     private int reviewIdToEdit;
 
+    private bool ShowFrontImage = true;
     private bool ShowEditReview = false;
+    private bool ShowAddOrRemoveAmountPopUp = false;
+
 
     #endregion
-    
+
     #region OnInitialized
     protected async override Task OnInitializedAsync()
     {
@@ -365,6 +377,8 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         authUser = authState.User;
 
+        user = await UserManager.FindByEmailAsync(authUser.Identity.Name);
+
     }
 
     #endregion
@@ -385,7 +399,7 @@
     }
 
     #endregion
-    
+
     #region ReviewStuff
     private void TriggerEditReview(int reviewId)
     {
@@ -398,7 +412,7 @@
         ShowEditReview = false;
     }
 
-      private async void DeleteReview(BookReviews review)
+    private async void DeleteReview(BookReviews review)
     {
         review.IsDeleted = true;
         Context.BookReviews.Update(review);
@@ -418,6 +432,16 @@
 
     #endregion
 
+    private void TriggerAddOrRemoveAmountPopUp()
+    {
+        // BookId = BookId;
+        ShowAddOrRemoveAmountPopUp = true;
+    }
+
+    private void TriggerAddOrRemoveAmountPopUpClose()
+    {
+        ShowAddOrRemoveAmountPopUp = false;
+    }
     #region BookStuff
     private async void SetBookAvailable()
     {
