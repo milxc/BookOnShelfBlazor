@@ -96,7 +96,6 @@
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
                                     <InputSelect style="margin-top:-17px;" @bind-Value="SelectedLanguage" class="form-control custom-outline-color">
-                                        <option value="">Select a language</option>
                                         @if (Languages != null)
                                         {
                                             @foreach (var language in Languages)
@@ -166,9 +165,9 @@
     private List<Writers> CurrentWriters;
     private List<int> SelectedWriters = new List<int>();
 
-    List<Genres> Genres;
-    List<Languages> Languages;
-    List<Writers> Writers;
+    List<Genres?> Genres;
+    List<Languages?> Languages;
+    List<Writers?> Writers;
 
     private bool ShowCheckBoxList = false;
     private bool ShowAddWriterForm = false;
@@ -204,8 +203,11 @@
         Languages = await Context.Languages.OrderBy(l => l.LanguageName).ToListAsync();
         Writers = await Context.Writers.OrderBy(w => w.FirstName).ToListAsync();
 
-        SelectedGenre = Book.GenreId.GenreName.ToString();
-        SelectedLanguage = Book.LanguageId.LanguageName.ToString();
+        if (Book != null)
+        {
+            SelectedGenre = Book.GenreId.GenreId.ToString();
+            SelectedLanguage = Book.LanguageId.LanguageId.ToString();
+        }
 
     }
 
@@ -415,13 +417,12 @@
             }
             try
             {
-                Book.LanguageId = Languages.FirstOrDefault(l => l.LanguageName == SelectedLanguage);
-                Book.GenreId = Genres.FirstOrDefault(g => g.GenreName == SelectedGenre);
+                Book.LanguageId = GetSelectedLanguage();
+                Book.GenreId = GetSelectedGenre();
 
                 await UpdateSelectedWriters();
                 await Context.SaveChangesAsync();
                 Message = "Success :Book edited!";
-                await Task.Delay(2000);
             }
             catch (Exception ex)
             {
