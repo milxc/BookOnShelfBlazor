@@ -4,6 +4,7 @@ using BookOnShelfBlazor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookOnShelfBlazor.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240428085149_AddedBooksInAwaittable")]
+    partial class AddedBooksInAwaittable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,36 +259,6 @@ namespace BookOnShelfBlazor.Migrations
                     b.HasIndex("FkUserId");
 
                     b.ToTable("BooksHistory");
-                });
-
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BooksInAwaitOfGetting", b =>
-                {
-                    b.Property<int>("BooksInAwaitOfGettingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BooksInAwaitOfGettingId"));
-
-                    b.Property<DateOnly>("BeginDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("BookId1")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("UserIdId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("BooksInAwaitOfGettingId");
-
-                    b.HasIndex("BookId1");
-
-                    b.HasIndex("UserIdId");
-
-                    b.ToTable("BooksInAwaitOfGetting");
                 });
 
             modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BooksWriters", b =>
@@ -626,25 +599,6 @@ namespace BookOnShelfBlazor.Migrations
                     b.HasOne("BookOnShelfBlazor.Data.ApplicationUser", "UserId")
                         .WithMany()
                         .HasForeignKey("FkUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BookId");
-
-                    b.Navigation("UserId");
-                });
-
-            modelBuilder.Entity("BookOnShelfBlazor.Data.Models.BooksInAwaitOfGetting", b =>
-                {
-                    b.HasOne("BookOnShelfBlazor.Data.Models.Books", "BookId")
-                        .WithMany()
-                        .HasForeignKey("BookId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookOnShelfBlazor.Data.ApplicationUser", "UserId")
-                        .WithMany()
-                        .HasForeignKey("UserIdId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

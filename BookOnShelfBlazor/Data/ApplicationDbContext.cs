@@ -18,6 +18,7 @@ namespace BookOnShelfBlazor.Data
         public DbSet<Writers> Writers { get; set; }
         public DbSet<BookReviews> BookReviews { get; set; }
 
+        public DbSet<BooksInAwaitOfGetting> BooksInAwaitOfGetting { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
