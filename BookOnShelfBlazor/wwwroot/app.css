@@ -360,3 +360,36 @@ h1:focus {
 .custom-margin{
     margin-left:15px;
 }
+
+.image-container-MyBooks {
+    display: inline-block;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-width: 18%;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.5s ease;
+}
+
+    .image-container-MyBooks img {
+        display: block;
+        width: 100%;
+        height:100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: opacity 0.5s ease;
+        padding:0.5rem;
+    }
+
+    .image-container-MyBooks .back-cover {
+        opacity: 0;
+    }
+
+.card:hover .image-container-MyBooks .front-cover {
+    opacity: 0;
+}
+
+.card:hover .image-container-MyBooks .back-cover {
+    opacity: 1;
+}

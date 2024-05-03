@@ -22,10 +22,17 @@
 <div class="container">
     @foreach(var book in BooksInAwait)
     {
-
+        <div class="container" style="display:flex;">
+            <div class="card w-100">
+                <div class="card-body">
+                    <div class="image-container-MyBooks" style="width:18%; height:375px; position:relative;">
+                        <img src="@(GetImageSource(book.BookId.FrontCover))" class="front-cover" alt="Front Cover" />
+                        <img src="@(GetImageSource(book.BookId.BackCover))" class="back-cover" alt="Back Cover" style="padding:4px;" />
+                    </div>
+                    </div>
+                </div>
+            </div>
     }
-
-
 </div>
 
 @code {
@@ -36,6 +43,8 @@
     private ApplicationUser user;
     private ClaimsPrincipal authUser;
 
+    private bool ShowFrontImage = true;
+
     protected async override Task OnInitializedAsync()
     {
 
@@ -45,6 +54,19 @@
         user = await UserManager.FindByEmailAsync(authUser.Identity.Name);
 
         BooksInAwait = await Context.BooksInAwaitOfGetting.Include(b => b.BookId).Where(b => b.UserId == user).ToListAsync();
+    }
+
+    private string GetImageSource(byte[] imageData)
+    {
+        if (imageData == null || imageData.Length == 0)
+            return null;
+
+        return $"data:image/jpeg;base64,{Convert.ToBase64String(imageData)}";
+    }
+
+    private async void ToggleImage()
+    {
+        ShowFrontImage = !ShowFrontImage;
     }
 
 }
